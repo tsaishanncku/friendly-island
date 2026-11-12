@@ -1,0 +1,625 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>友善不設限</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#0c777b">
+<meta name="description" content="友善不設限：人人都是島民。五個手機小遊戲的特教宣導島嶼冒險。">
+<style>
+/* 版面：手機優先的單欄。島嶼地圖是主畫面，五個地標各開一個全螢幕小遊戲。 */
+:root{
+  --ink:#173b45;--muted:#56717a;--sea:#0c777b;--sea-deep:#075c60;--foam:#e6f6f3;
+  --line:#d5e6e1;--bg:#eef6f3;--card:#ffffff;--sun:#f4b64f;--coral:#e2684a;
+  --good:#1a8a63;--good-bg:#e2f6ea;--warn-bg:#fff1d6;--warn-ink:#6b4c26;--bad:#b9502f;--bad-bg:#ffe9e1;
+  --display:"Chiron Hei HK","PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
+  --body:system-ui,-apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.wrap{max-width:980px;margin:auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.top{background:var(--card);border-bottom:1px solid var(--line)}
+.topin{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding-block:10px}
+.brand{font-family:var(--display);font-weight:900;font-size:20px;color:var(--sea-deep);line-height:1.2}
+.brand small{display:block;font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.08em}
+.topact{display:flex;gap:6px}
+.btn{border:1.5px solid var(--line);background:var(--card);color:var(--sea-deep);border-radius:14px;padding:10px 14px;font-weight:800;min-height:46px}
+.btn.primary{background:var(--sea);border-color:var(--sea);color:#fff}
+.btn.primary:active{background:var(--sea-deep)}
+.btn.wide{width:100%}
+.hero{padding-block:18px 12px}
+.hero h1{font-family:var(--display);font-size:clamp(24px,6vw,38px);line-height:1.25;margin:0 0 6px;text-wrap:balance}
+.hero p{margin:0;color:var(--muted);font-size:15px}
+.meters{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.meter{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:8px 6px;text-align:center}
+.meter strong{display:block;font-size:20px;line-height:1.3;font-variant-numeric:tabular-nums}
+.meter span{font-size:12px;color:var(--muted);font-weight:700}
+.mapbox{position:relative;border:4px solid var(--card);border-radius:20px;overflow:hidden;background:#8cdbdd;box-shadow:0 10px 26px rgba(22,75,75,.1)}
+.mapbox svg{display:block;width:100%;height:auto}
+.maptitle{position:absolute;top:8px;left:8px;background:rgba(255,255,255,.93);border-radius:12px;padding:5px 10px;font-weight:900;font-size:13px;max-width:70%}
+.pin{position:absolute;transform:translate(-50%,-50%);border:2px solid #fff;background:rgba(255,255,255,.95);color:var(--ink);border-radius:99px;box-shadow:0 4px 14px rgba(24,79,74,.3);padding:5px 10px;min-height:38px;font-size:12px;font-weight:900;white-space:nowrap;animation:bob 2.6s ease-in-out infinite}
+.pin.done{background:var(--good-bg);border-color:#54ab86;animation:none}
+.pin[data-id="port"]{left:20%;top:66%}
+.pin[data-id="hotel"]{left:46%;top:33%}
+.pin[data-id="transit"]{left:78%;top:63%;animation-delay:.5s}
+.pin[data-id="view"]{left:73%;top:25%;animation-delay:1s}
+.pin[data-id="center"]{left:48%;top:76%;animation-delay:1.5s}
+@keyframes bob{50%{transform:translate(-50%,calc(-50% - 4px))}}
+.mapcap{text-align:center;color:var(--muted);font-size:13px;margin:8px 0 0}
+.cols{display:grid;grid-template-columns:1fr;gap:14px;margin:16px 0 34px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;min-width:0}
+.card h2{font-family:var(--display);margin:0 0 8px;font-size:20px}
+.muted{color:var(--muted);font-size:14px}
+.places{display:grid;gap:8px;margin:12px 0}
+.place{display:flex;align-items:center;gap:12px;text-align:left;padding:12px;border-radius:16px;background:#f7fbf9;border:1.5px solid var(--line);min-height:64px;width:100%}
+.place .ic{font-size:28px;flex:none;width:40px;text-align:center}
+.place .tx{flex:1;min-width:0}
+.place strong{display:block}
+.place small{display:block;color:var(--muted)}
+.place .st{flex:none;color:var(--sun);font-size:18px;letter-spacing:1px}
+.place.completed{background:var(--good-bg);border-color:#bfe3cf}
+.callout{background:var(--foam);padding:12px 14px;border-radius:14px;color:#24695e;font-size:14px;margin:12px 0}
+.field{width:100%;padding:12px;border:1.5px solid #bdd5d2;border-radius:12px;font-size:16px;margin:6px 0 12px;background:#fff}
+.themes{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0 14px}
+.theme{border:1.5px solid var(--line);border-radius:99px;padding:8px 14px;background:#f7fbf9;min-height:44px;font-weight:700}
+.theme.selected{background:#d6f2e8;border-color:var(--sea)}
+.progress{height:10px;background:#deeeea;border-radius:30px;overflow:hidden;margin:10px 0}
+.progress>div{background:#2cae87;height:100%;transition:width .3s}
+.foot{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 28px}
+.small{font-size:12.5px;color:var(--muted)}
+
+/* 對話框／遊戲視窗 */
+.overlay{position:fixed;inset:0;background:rgba(13,51,67,.65);display:none;justify-content:center;align-items:center;z-index:20;
+  padding:max(10px,env(safe-area-inset-top,0px)) max(10px,env(safe-area-inset-right,0px)) max(10px,env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px))}
+.overlay.show{display:flex}
+.dialog{max-width:560px;width:100%;background:var(--card);border-radius:22px;max-height:100%;overflow:auto;padding:16px;box-shadow:0 30px 80px rgba(9,45,61,.35);animation:pop .22s ease-out}
+@keyframes pop{from{transform:translateY(14px);opacity:.4}}
+.dhead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px}
+.dhead h2{font-family:var(--display);margin:0;font-size:22px;line-height:1.3}
+.step{color:var(--good);font-size:12px;font-weight:900;letter-spacing:.08em}
+.close{border:0;background:var(--foam);border-radius:12px;font-size:22px;line-height:1;width:46px;height:46px;flex:none}
+.brief{background:var(--foam);border-radius:14px;padding:10px 12px;font-size:14.5px;margin-bottom:10px}
+.msg{border-radius:13px;padding:10px 12px;margin:10px 0;font-size:14.5px;min-height:44px;background:#f3f8f6;color:var(--muted)}
+.msg.good{background:var(--good-bg);color:#1c5e45}
+.msg.bad{background:var(--warn-bg);color:var(--warn-ink)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.acts .btn{flex:1 1 140px}
+.hud{display:flex;justify-content:space-between;gap:8px;font-weight:800;font-size:14px;margin:6px 0;font-variant-numeric:tabular-nums}
+.shake{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.bigstars{font-size:46px;text-align:center;color:var(--sun);letter-spacing:6px;line-height:1.2}
+.bigstars span{display:inline-block;animation:starin .4s backwards}
+.bigstars span:nth-child(2){animation-delay:.15s}.bigstars span:nth-child(3){animation-delay:.3s}
+@keyframes starin{from{transform:scale(0) rotate(-40deg)}}
+.result{border-radius:14px;background:var(--good-bg);padding:12px 14px;margin:10px 0;color:#1c5e45}
+
+/* 1 找碴 */
+.scenebox{border-radius:14px;overflow:hidden;border:2px solid var(--line);touch-action:manipulation}
+.scenebox svg{display:block;width:100%;height:auto}
+.hot{fill:transparent;cursor:pointer}
+.miss{fill:none;stroke:var(--coral);stroke-width:3;animation:fade .7s forwards}
+.ring{fill:none;stroke:var(--sun);stroke-width:4;animation:pulse .5s 3}
+@keyframes fade{to{opacity:0;r:20}}
+@keyframes pulse{50%{opacity:.2}}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.chip{font-size:12.5px;font-weight:800;border-radius:99px;padding:4px 10px;background:#eef3f1;color:var(--muted)}
+.chip.on{background:var(--good-bg);color:var(--good)}
+
+/* 2 旅館 */
+.budget{height:14px;border-radius:99px;background:#deeeea;overflow:hidden;margin:6px 0 10px}
+.budget>div{height:100%;background:var(--sun);transition:width .25s}
+.budget.over>div{background:var(--coral)}
+.item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:1.5px solid var(--line);border-radius:14px;background:#fbfefd;padding:10px 12px;margin:7px 0;min-height:58px}
+.item .ic{font-size:26px;width:34px;text-align:center;flex:none}
+.item .tx{flex:1;min-width:0}
+.item strong{display:block}
+.item small{color:var(--muted)}
+.item .pr{font-weight:900;flex:none;font-variant-numeric:tabular-nums}
+.item.on{border-color:var(--sea);background:var(--foam)}
+.guest{display:flex;gap:10px;align-items:flex-start;border:1.5px solid var(--line);border-radius:14px;padding:10px 12px;margin:7px 0;animation:walk .45s backwards}
+@keyframes walk{from{transform:translateX(-30px);opacity:0}}
+.guest .ic{font-size:30px;flex:none}
+.guest.ok{background:var(--good-bg);border-color:#bfe3cf}
+.guest.no{background:var(--bad-bg);border-color:#f3c9bb}
+.guest strong{display:block}
+.guest small{display:block;color:var(--muted)}
+
+/* 3 迷宮 */
+.maze{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;max-width:372px;margin:0 auto;background:#cfe4dc;padding:3px;border-radius:14px}
+.cell{aspect-ratio:1;border:0;border-radius:8px;background:#fdf6df;font-size:clamp(17px,5.6vw,24px);padding:0;line-height:1;display:flex;align-items:center;justify-content:center}
+.cell.wall{background:#9fd3ae}
+.cell.barrier{background:#f6d9cf}
+.cell.barrier.found{outline:2.5px solid var(--coral);outline-offset:-2.5px}
+.cell.aid{background:#cfeef5}
+.cell.trail{background:#ffe7a8}
+.cell.here{background:var(--sun);box-shadow:0 0 0 3px #fff inset}
+.dpad{display:grid;grid-template-columns:repeat(3,58px);grid-template-rows:repeat(2,52px);gap:6px;justify-content:center;margin:10px 0 4px}
+.dpad button{border:1.5px solid var(--line);background:var(--card);border-radius:14px;font-size:22px;font-weight:900}
+.dpad .u{grid-column:2}.dpad .l{grid-column:1;grid-row:2}.dpad .d{grid-column:2;grid-row:2}.dpad .r{grid-column:3;grid-row:2}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;justify-content:center;font-size:12.5px;color:var(--muted)}
+
+/* 4 滑卡 */
+.deck{position:relative;height:210px;margin:8px 0;display:flex;align-items:center;justify-content:center}
+.swipe{position:relative;width:min(100%,330px);height:196px;border-radius:20px;background:linear-gradient(160deg,#fffbeb,#fff);border:2.5px solid var(--sun);box-shadow:0 10px 24px rgba(23,59,69,.14);display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;font-size:18px;font-weight:800;line-height:1.5;touch-action:pan-y;user-select:none;-webkit-user-select:none;transition:transform .25s;cursor:grab}
+.swipe.right{border-color:var(--good);background:var(--good-bg)}
+.swipe.wrong{border-color:var(--coral);background:var(--bad-bg)}
+.stamp{position:absolute;top:10px;font-size:14px;font-weight:900;border:2.5px solid;border-radius:8px;padding:1px 8px;opacity:0}
+.stamp.l{right:12px;color:var(--bad);transform:rotate(10deg)}
+.stamp.r{left:12px;color:var(--good);transform:rotate(-10deg)}
+.swipebtns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.swipebtns .no{background:var(--bad-bg);border-color:#f3c9bb;color:var(--bad)}
+.swipebtns .yes{background:var(--good-bg);border-color:#bfe3cf;color:var(--good)}
+
+/* 5 翻牌 */
+.mem{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:380px;margin:0 auto}
+.mcard{aspect-ratio:1/.92;border-radius:14px;border:2px solid var(--sea);background:var(--sea);color:#fff;font-size:26px;font-weight:900;padding:4px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.3;transition:transform .15s}
+.mcard.open{background:#fff;color:var(--ink);transform:scale(1.03)}
+.mcard.open.txt{font-size:14px}
+.mcard.open.ico{font-size:38px}
+.mcard svg{max-width:92%;max-height:92%}
+.mcard.matched{background:var(--good-bg);border-color:#8fcfae;color:var(--ink)}
+
+.lobby{display:flex;align-items:flex-end;gap:10px;background:linear-gradient(180deg,#fff7e2 0 72%,#e3c79a 72%);border-radius:16px;padding:14px 12px 10px;min-height:128px;overflow:hidden}
+.gface{font-size:62px;line-height:1;flex:none}
+.gface.in{animation:walk .45s ease-out}
+.gface.happy{animation:hop .5s}
+@keyframes hop{40%{transform:translateY(-14px)}}
+.bubble{position:relative;flex:1;min-width:0;background:#fff;border:2px solid var(--line);border-radius:16px;padding:10px 12px;margin-bottom:26px;font-size:16px;font-weight:700;line-height:1.45}
+.bubble b{display:block;font-size:12.5px;color:var(--muted);font-weight:800}
+.bubble::before{content:"";position:absolute;left:-9px;bottom:12px;width:14px;height:14px;background:#fff;border-left:2px solid var(--line);border-bottom:2px solid var(--line);transform:rotate(45deg)}
+.tray{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.tool{display:flex;flex-direction:column;align-items:center;gap:2px;border:2px solid var(--line);background:var(--card);border-radius:16px;padding:10px 6px;font-weight:800;font-size:15px;min-height:84px}
+.tool span{font-size:32px;line-height:1.1}
+.tool:active:not(:disabled){transform:scale(.96)}
+.tool.hit{border-color:var(--good);background:var(--good-bg);opacity:1}
+.tool.nope{animation:shake .3s}
+
+.rush{background:#2b3a42;color:#fff;border-radius:16px;padding:16px;font-size:17px;font-weight:700;line-height:1.5;letter-spacing:-.02em;word-break:break-all;animation:shake .35s 6}
+.timerbar{height:10px;border-radius:99px;background:#deeeea;overflow:hidden;margin-top:10px}
+.timerbar>div{height:100%;background:var(--coral);animation:drain 5s linear forwards}
+@keyframes drain{to{width:0}}
+.qtext{font-size:19px;font-weight:900;margin:8px 0}
+.opts{display:grid;gap:8px}
+.opts .btn{font-size:18px;min-height:54px}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}
+.scard{background:var(--foam);border:2px solid #bfe3d6;border-radius:14px;padding:8px 4px;text-align:center;font-size:13.5px;font-weight:700;line-height:1.35}
+.scard span{display:block;font-size:28px}
+.scard small{display:block;color:var(--muted);font-size:11.5px}
+.scard b{font-size:16px;color:var(--sea-deep)}
+.bignum{font-family:var(--display);font-size:54px;font-weight:900;text-align:center;line-height:1.2;font-variant-numeric:tabular-nums}
+.versus{display:flex;align-items:center;justify-content:center;gap:12px;margin:6px 0}
+.versus div{border:2px solid var(--line);border-radius:16px;padding:10px 16px;text-align:center}
+.versus .win{border-color:var(--good);background:var(--good-bg)}
+.versus small{display:block;color:var(--muted);font-weight:700}
+.versus b{font-size:30px;font-variant-numeric:tabular-nums}
+.versus span{font-size:22px}
+.tface{display:flex;align-items:center;gap:8px;font-weight:900;font-size:17px;font-variant-numeric:tabular-nums}
+.tface span{font-size:38px;line-height:1}
+.thermo{height:22px;border-radius:99px;background:#deeeea;overflow:hidden;margin:6px 0 10px}
+.thermo>div{height:100%;background:#2cae87;border-radius:99px;transition:width .4s,background .4s}
+.thermo.mid>div{background:var(--sun)}
+.thermo.hot>div{background:var(--coral)}
+.stick{position:sticky;top:-16px;background:var(--card);padding-top:6px;z-index:1}
+.item.hurt{border-color:#f3c9bb;background:var(--bad-bg);opacity:1}
+.item.on:disabled{opacity:1}
+
+.cert{border:4px double var(--sea);border-radius:18px;padding:20px 14px;text-align:center;background:linear-gradient(180deg,#f3fbf7,#fff)}
+.cert h3{font-family:var(--display);font-size:24px;margin:6px 0;color:var(--sea-deep)}
+.cert .nm{font-size:22px;font-weight:900;margin:10px 0;overflow-wrap:anywhere}
+
+@media(min-width:760px){
+  .cols{grid-template-columns:1.2fr .8fr}
+  .hero{display:flex;justify-content:space-between;align-items:end;gap:20px}
+  .meters{margin:0;min-width:330px}
+  .pin{font-size:14px;padding:8px 14px;min-height:44px}
+  .maptitle{font-size:15px;top:14px;left:14px}
+  .mapbox{border-width:8px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head><body>
+<header class="top"><div class="wrap topin">
+  <div class="brand">🏝️ 友善不設限<small>人人都是島民</small></div>
+  <div class="topact">
+    <button id="mute" class="btn" aria-label="切換音效">🔊</button>
+    <button id="help" class="btn">玩法</button>
+    <button id="reset" class="btn">重玩</button>
+  </div>
+</div></header>
+
+<main class="wrap">
+  <section class="hero">
+    <div>
+      <h1>打造一座人人都能玩的島</h1>
+      <p>點地圖上的地標，闖過五個小遊戲，把障礙一個一個變不見。</p>
+    </div>
+    <div class="meters">
+      <div class="meter"><strong id="mStars">⭐ 0</strong><span>星星（滿分 15）</span></div>
+      <div class="meter"><strong id="mIndex">0%</strong><span>友善指數</span></div>
+      <div class="meter"><strong id="mCount">0 / 5</strong><span>完成關卡</span></div>
+    </div>
+  </section>
+
+  <div class="mapbox">
+    <div class="maptitle" id="mapName">🏝️ 我的友善觀光島</div>
+    <svg id="islandSvg" viewBox="0 0 1100 690" role="img" aria-label="具有碼頭、旅館、交通站和景點的立體風格島嶼，請用地圖上五個按鈕進入任務。" xmlns="http://www.w3.org/2000/svg">
+ <defs><linearGradient id="waterG" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#b9edf0"/><stop offset=".6" stop-color="#71c9d1"/><stop offset="1" stop-color="#47b2bf"/></linearGradient><linearGradient id="landG" x1="0" y1="0" x2=".9" y2="1"><stop stop-color="#a8dea6"/><stop offset="1" stop-color="#5cad80"/></linearGradient><linearGradient id="edgeG" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#f7d6a2"/><stop offset="1" stop-color="#c79562"/></linearGradient><filter id="drop"><feGaussianBlur stdDeviation="19"/></filter><pattern id="wavy" width="100" height="76" patternUnits="userSpaceOnUse"><path d="M6 40Q20 28 35 40T64 40M57 70Q71 58 85 70" fill="none" stroke="#ffffff" stroke-opacity=".33" stroke-width="3" stroke-linecap="round"/></pattern><linearGradient id="mountain" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#77b59a"/><stop offset="1" stop-color="#377f7c"/></linearGradient><linearGradient id="goldRoof" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fae6a7"/><stop offset="1" stop-color="#ef9f54"/></linearGradient></defs>
+ <rect width="1100" height="690" fill="url(#waterG)"/><rect class="scene-water" width="1100" height="690" fill="url(#wavy)"/><g fill="#ffffff" opacity=".31"><ellipse cx="97" cy="132" rx="78" ry="16"/><ellipse cx="973" cy="112" rx="112" ry="22"/><ellipse cx="954" cy="580" rx="80" ry="12"/></g>
+ <!-- boat trails and outer decoration --><g fill="none" stroke="#f1fffb" stroke-width="6" opacity=".75" stroke-linecap="round"><path d="M0 532q82 -18 146 11"/><path d="M978 637q49 23 113 1"/><path d="M0 300q67 15 107 -2"/></g><g transform="translate(76 494)"><ellipse rx="62" ry="12" fill="#2f8390" opacity=".22"/><path d="M-48 -12L44 -12L20 11H-26Z" fill="#f7f4e4"/><path d="M-35 -20L22 -20L35 -12H-47Z" fill="#df805a"/><rect x="-14" y="-43" width="5" height="25" fill="#7e9a8c"/><path d="M-9 -43L18 -20H-9Z" fill="#fff7d2"/></g>
+ <!-- island shadow and thickness -->
+ <path d="M158 378C160 312 240 274 320 252C384 209 480 229 531 209C641 172 781 208 852 259C926 282 982 350 972 437C950 526 847 554 769 577C666 619 542 588 455 611C338 597 187 571 164 495Z" transform="translate(0 46)" fill="#246879" opacity=".32" filter="url(#drop)"/>
+ <path d="M156 374C156 306 234 272 322 255C381 207 478 228 531 207C643 169 784 213 852 260C933 284 986 348 972 435C949 523 854 549 769 573C667 618 542 586 458 602C338 596 188 560 162 489Z" transform="translate(0 35)" fill="url(#edgeG)" stroke="#be965f" stroke-width="4"/>
+ <path d="M156 374C156 306 234 272 322 255C381 207 478 228 531 207C643 169 784 213 852 260C933 284 986 348 972 435C949 523 854 549 769 573C667 618 542 586 458 602C338 596 188 560 162 489Z" fill="url(#landG)" stroke="#f8e6ae" stroke-width="17" stroke-linejoin="round"/>
+ <!-- paths --> <g stroke-linecap="round" fill="none"><path d="M240 475C300 443 335 433 386 409S491 386 531 379S645 421 740 421S823 395 851 337" stroke="#5f9b82" stroke-opacity=".3" stroke-width="39"/><path d="M240 475C300 443 335 433 386 409S491 386 531 379S645 421 740 421S823 395 851 337" stroke="#f0dfad" stroke-width="23"/><path d="M506 366Q576 284 680 262T821 289" stroke="#f5dfad" stroke-width="18"/><path d="M344 409Q384 329 481 301" stroke="#f5dfad" stroke-width="15"/><path d="M742 421Q708 497 647 532" stroke="#f5dfad" stroke-width="16"/></g>
+ <!-- hills --> <g><path d="M678 260Q718 165 770 185Q815 169 842 258Q792 306 678 260" fill="url(#mountain)"/><path d="M716 246Q745 178 765 189Q789 192 812 257Q758 274 716 246" fill="#67b398"/><path d="M762 194L746 223L770 215L782 236L796 232Z" fill="#e6e8d5" opacity=".8"/></g>
+ <!-- beaches + vegetation --> <path d="M196 454C215 493 272 536 342 545" fill="none" stroke="#fbebbb" stroke-width="22" stroke-linecap="round"/><g id="trees" opacity=".98">
+ <g transform="translate(334 306)"><ellipse rx="29" ry="9" fill="#247259" opacity=".17"/><path d="M0 4L0 -25" stroke="#876247" stroke-width="8"/><circle cx="-10" cy="-34" r="25" fill="#359f70"/><circle cx="14" cy="-40" r="26" fill="#4fc180"/><circle cx="10" cy="-21" r="22" fill="#278c62"/></g>
+ <g transform="translate(360 490)"><ellipse rx="24" ry="8" fill="#247259" opacity=".17"/><path d="M0 3V-27" stroke="#876247" stroke-width="6"/><circle cx="-12" cy="-32" r="21" fill="#309e6c"/><circle cx="11" cy="-37" r="23" fill="#58bb7c"/></g>
+ <g transform="translate(615 482)"><ellipse rx="25" ry="8" fill="#247259" opacity=".17"/><path d="M0 3V-25" stroke="#876247" stroke-width="7"/><circle cx="-8" cy="-33" r="23" fill="#309e6c"/><circle cx="15" cy="-31" r="22" fill="#54bf81"/></g>
+ <g transform="translate(887 409)"><ellipse rx="28" ry="8" fill="#247259" opacity=".17"/><path d="M0 4V-27" stroke="#876247" stroke-width="7"/><circle cx="-11" cy="-34" r="24" fill="#269d70"/><circle cx="14" cy="-40" r="23" fill="#61c88e"/></g>
+ <g transform="translate(879 305)"><ellipse rx="29" ry="8" fill="#247259" opacity=".17"/><path d="M0 5V-25" stroke="#876247" stroke-width="7"/><circle cx="-10" cy="-33" r="23" fill="#268b63"/><circle cx="14" cy="-36" r="23" fill="#59bb7c"/></g>
+ <g transform="translate(431 523)"><ellipse rx="26" ry="7" fill="#247259" opacity=".17"/><path d="M0 4V-28" stroke="#876247" stroke-width="8"/><circle cx="-11" cy="-39" r="22" fill="#37a873"/><circle cx="14" cy="-40" r="24" fill="#52c083"/></g>
+ </g>
+ <!-- pier wood with depth --> <g transform="translate(216 462)"><path d="M-95 25L-36 25L-7 40L-7 68L-95 52Z" fill="#a97650"/><path d="M-95 25L-36 25L-7 40L-67 40Z" fill="#d49b69"/><path d="M-67 40V56M-35 32V54" stroke="#986743" stroke-width="8"/><path d="M-43 -13L12 -42L84 -12L29 17Z" fill="#f3ddac" stroke="#aa8762" stroke-width="4"/><path d="M-43 -13V15L29 47V17Z" fill="#c7ab78"/><path d="M29 17L84 -12V18L29 47Z" fill="#aa9366"/><path d="M-24 -32L12 -57L50 -42L13 -17Z" fill="#f2bb71"/><path d="M-24 -32V-5L13 11V-17Z" fill="#fff5da"/><path d="M13 -17L50 -42V-12L13 11Z" fill="#e3ceab"/><rect x="-4" y="-17" width="14" height="21" fill="#8bd9de" transform="skewY(22)"/><path d="M-67 43L-67 76" stroke="#9a6444" stroke-width="8"/><path d="M-42 50L-42 82" stroke="#9a6444" stroke-width="8"/><path d="M-8 57L-8 92" stroke="#9a6444" stroke-width="8"/></g>
+ <!-- hotel isometric --> <g transform="translate(509 305)"><ellipse cx="4" cy="80" rx="100" ry="26" fill="#1e6554" opacity=".20"/><path d="M-80 -56L-5 -98L82 -59L7 -17Z" fill="url(#goldRoof)" stroke="#e7ab5b" stroke-width="3"/><path d="M-80 -56V49L7 92V-17Z" fill="#fffbeb" stroke="#dfdfc2" stroke-width="3"/><path d="M7 -17L82 -59V46L7 92Z" fill="#ecd4af"/><path d="M-61 -27l24 11v26l-24 -12zM-23 -7L0 4v26L-23 18zM-61 11l24 11v26l-24 -12zM-23 31L0 42v27L-23 57z" fill="#8bcbd5" stroke="#61a8b5" stroke-width="3"/><path d="M30 0l29 -17v26L30 27zM30 39l29 -17v27L30 66z" fill="#7dbcc5" stroke="#65a6ae" stroke-width="3"/><path d="M-8 60L17 72V91L-8 79Z" fill="#d7a86a"/><g transform="translate(-4 -105)"><path d="M0 0V-30" stroke="#87765b" stroke-width="4"/><path d="M0 -29L46 -19L0 -8Z" fill="#fff4ba"/></g></g>
+ <!-- transport station bus and terminal --> <g transform="translate(786 409)"><ellipse cx="0" cy="60" rx="112" ry="27" fill="#285b5e" opacity=".17"/><path d="M-74 -28L-26 -53L47 -29L0 -2Z" fill="#f4b65e"/><path d="M-74 -28V27L0 51V-2Z" fill="#fff7e4"/><path d="M0 -2L47 -29V26L0 51Z" fill="#d4e1bf"/><path d="M-54 -11l33 11v21l-33 -12z" fill="#74c6d6"/><path d="M12 3l24 -13v22L12 25Z" fill="#80bdc4"/><g transform="translate(58 33)"><path d="M-30 -13L22 -29L54 -15L4 0Z" fill="#f5e3b1"/><path d="M-30 -13V15L4 30V0Z" fill="#57a4bc"/><path d="M4 0L54 -15V15L4 30Z" fill="#348e9f"/><path d="M-18 -6l17 8v13l-17 -8Z" fill="#e1f7e6"/><circle cx="-14" cy="24" r="11" fill="#234b60"/><circle cx="33" cy="26" r="11" fill="#234b60"/><circle cx="-14" cy="24" r="5" fill="#d2e0dc"/><circle cx="33" cy="26" r="5" fill="#d2e0dc"/></g></g>
+ <!-- hill scenic attraction --> <g transform="translate(772 250)"><ellipse cy="46" rx="86" ry="21" fill="#235d5f" opacity=".17"/><path d="M-76 15L0 -28L78 13L4 54Z" fill="#c9996a"/><path d="M-76 6L0 -36L78 5L4 46Z" fill="#f9e6bd"/><path d="M-58 -11L0 -48L60 -11L4 25Z" fill="#efd5a1"/><path d="M-58 -11L0 -49L60 -11L3 24Z" fill="none" stroke="#b99060" stroke-width="5"/><path d="M0 -49V-92M-42 -25V-63M44 -25V-62" stroke="#917451" stroke-width="7"/><path d="M-47 -59L0 -93L46 -60" fill="none" stroke="#eaa967" stroke-width="11" stroke-linejoin="round"/><path d="M-47 -59L0 -93L46 -60" fill="none" stroke="#f7d296" stroke-width="6" stroke-linejoin="round"/><g><circle cx="0" cy="-105" r="15" fill="#ffe8b2"/><path d="M0 -106V-125" stroke="#876d4d" stroke-width="4"/></g></g>
+ <g transform="translate(528 500)"><ellipse cy="34" rx="52" ry="13" fill="#1e6554" opacity=".18"/><path d="M-40 -18L0 -38L42 -18L2 2Z" fill="#e2684a"/><path d="M-40 -18V18L2 38V2Z" fill="#fffbeb"/><path d="M2 2L42 -18V18L2 38Z" fill="#ecd4af"/><path d="M-28 -4l18 9v16l-18 -9z" fill="#8bcbd5"/><circle cx="22" cy="6" r="8" fill="#0c777b"/><text x="22" y="10" font-size="11" fill="#fff" text-anchor="middle" font-weight="700">i</text></g>
+ <!-- completed enhancements drawn dynamically --> <g id="enhancements"></g>
+ <!-- decorative sign + compass --> <g transform="translate(940 515)"><path d="M0 11V-25" stroke="#8b714e" stroke-width="7"/><path d="M-6 -35L32 -26L-6 -16Z" fill="#fdf0c4"/><path d="M-6 -14L-38 -7L-6 2Z" fill="#e5ad73"/></g>
+ </svg>
+    <button class="pin" data-id="port"></button>
+    <button class="pin" data-id="hotel"></button>
+    <button class="pin" data-id="transit"></button>
+    <button class="pin" data-id="view"></button>
+    <button class="pin" data-id="center"></button>
+  </div>
+  <p class="mapcap">點地標開始遊戲，順序自己決定</p>
+
+  <section class="cols">
+    <div class="card">
+      <h2>五個關卡</h2>
+      <div class="muted">每關最多 3 顆星，可以重玩刷新紀錄。</div>
+      <div class="places" id="places"></div>
+      <div class="callout">友善不是特別照顧少數人。斜坡、字幕、清楚的指標，推行李、戴耳機、第一次來的人一樣用得到。</div>
+      <button id="audit" class="btn primary wide">👥 旅客來訪：驗收我的島</button>
+    </div>
+    <aside class="card">
+      <h2>我的島</h2>
+      <label for="islandInput">幫你的島取名字</label>
+      <input id="islandInput" class="field" maxlength="16" placeholder="例如：彩虹出發島" autocomplete="off">
+      <div style="font-weight:800">海水顏色</div>
+      <div id="themes" class="themes">
+        <button class="theme" data-theme="sea">🌊 海洋</button>
+        <button class="theme" data-theme="forest">🌳 森林</button>
+        <button class="theme" data-theme="sunset">🌅 夕陽</button>
+      </div>
+      <div class="progress"><div id="bar" style="width:0%"></div></div>
+      <p id="completion" class="muted"></p>
+      <button id="certificate" class="btn primary wide" disabled>🏅 領取島民證</button>
+      <p class="small">進度只存在這支手機的瀏覽器裡。不用透露個人狀況。只有車站的廣播體驗會限時 5 秒，其他關卡都沒有時間限制。</p>
+    </aside>
+  </section>
+</main>
+<footer class="foot">課程《友善不設限：人人都是島民》 · 特教宣導互動遊戲</footer>
+
+<div id="overlay" class="overlay"><div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dTitle">
+  <div class="dhead"><div><div class="step" id="dStep"></div><h2 id="dTitle"></h2></div>
+  <button type="button" id="close" class="close" aria-label="關閉">×</button></div>
+  <div id="dBody"></div>
+</div></div>
+
+<script>
+(()=>{'use strict';
+const KEY='friendly-island-v3';
+/* 老師設定：把 Google Apps Script 的網址（結尾是 /exec）貼在引號裡，學生進度就會回報到你的試算表。留空則不回報。 */
+const ENDPOINT='https://script.google.com/macros/s/AKfycbxYuuWBhatl8afwe9BreFfrptVHlbYXOZZTbNk-Sr1NAV2fK0JhWuq-EcKX5GTDm6uN/exec';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const GAMES={
+  port:{icon:'🔎',name:'碼頭找碴',pin:'碼頭',sub:'在畫面裡點出 5 個障礙'},
+  hotel:{icon:'🏨',name:'旅館接待王',pin:'旅館',sub:'把對的工具遞給旅客'},
+  transit:{icon:'💗',name:'同理心車站',pin:'車站',sub:'感受資訊太多、壓力滿載'},
+  view:{icon:'🤝',name:'神隊友滑卡',pin:'景點',sub:'左滑右滑，分辨神隊友'},
+  center:{icon:'🎴',name:'友善翻翻牌',pin:'遊客中心',sub:'翻牌配對友善符號'}
+};
+const ORDER=Object.keys(GAMES);
+const DEFNAME='我的友善觀光島';
+const defaults=()=>({name:'',theme:'sea',stars:{},mute:false,id:'',nick:''});
+let state=defaults();
+try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&typeof s==='object'){state={...defaults(),...s};if(!state.stars||typeof state.stars!=='object')state.stars={}}}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}};
+if(!state.id){state.id=Date.now().toString(36)+Math.random().toString(36).slice(2,8);save()}
+function report(){if(!ENDPOINT)return;try{const s=k=>Math.max(0,Math.min(3,Number(state.stars[k])||0));const ks=['port','hotel','transit','view','center'];const p={id:state.id,nick:state.nick||'（未填）',done:ks.filter(k=>s(k)>0).length,stars:ks.reduce((a,k)=>a+s(k),0)};ks.forEach(k=>p[k]=s(k));fetch(ENDPOINT,{method:'POST',mode:'no-cors',keepalive:true,headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)}).catch(()=>{})}catch(e){}}
+const starOf=k=>Math.max(0,Math.min(3,Number(state.stars[k])||0));
+const starTxt=n=>'★'.repeat(n)+'☆'.repeat(3-n);
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+
+/* 音效 */
+let ac=null;
+function sfx(t){if(state.mute)return;try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();
+  const seq={good:[660,880],bad:[196],tap:[520],win:[523,659,784,1047]}[t]||[440];
+  seq.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain(),t0=ac.currentTime+i*.1;o.type='triangle';o.frequency.value=f;g.gain.setValueAtTime(.12,t0);g.gain.exponentialRampToValueAtTime(.001,t0+.2);o.connect(g);g.connect(ac.destination);o.start(t0);o.stop(t0+.22)})}catch(e){}}
+
+/* 主畫面 */
+function refresh(){
+  const n=ORDER.filter(k=>starOf(k)>0).length,total=ORDER.reduce((a,k)=>a+starOf(k),0);
+  $('mStars').textContent='⭐ '+total;$('mIndex').textContent=Math.round(total/15*100)+'%';$('mCount').textContent=n+' / 5';
+  $('bar').style.width=n*20+'%';
+  $('mapName').textContent='🏝️ '+(state.name||DEFNAME);
+  $('places').innerHTML=ORDER.map(k=>{const g=GAMES[k],s=starOf(k);return `<button type="button" class="place ${s?'completed':''}" data-place="${k}"><span class="ic">${g.icon}</span><span class="tx"><strong>${g.name}</strong><small>${g.sub}</small></span><span class="st" aria-label="${s} 顆星">${starTxt(s)}</span></button>`}).join('');
+  document.querySelectorAll('[data-place]').forEach(b=>b.onclick=()=>openGame(b.dataset.place));
+  document.querySelectorAll('.pin').forEach(b=>{const g=GAMES[b.dataset.id],d=starOf(b.dataset.id)>0;b.classList.toggle('done',d);b.textContent=(d?'✅ ':g.icon+' ')+g.pin});
+  $('completion').textContent=n===5?'五關全部完成！可以領島民證，也可以重玩把星星補滿。':`還有 ${5-n} 關，全部完成就能領島民證。`;
+  $('certificate').disabled=n!==5;
+  $('mute').textContent=state.mute?'🔇':'🔊';
+  document.querySelectorAll('.theme').forEach(x=>x.classList.toggle('selected',x.dataset.theme===state.theme));
+  const rect=$('islandSvg').querySelector('rect');if(rect)rect.setAttribute('fill',state.theme==='sunset'?'#f3b989':state.theme==='forest'?'#85b9a6':'url(#waterG)');
+  const pos={port:[300,476],hotel:[595,365],transit:[885,444],view:[858,211],center:[590,515]};
+  $('enhancements').innerHTML=ORDER.filter(k=>starOf(k)>0).map(k=>`<g transform="translate(${pos[k][0]} ${pos[k][1]})"><circle r="23" fill="#ffffff" stroke="#159571" stroke-width="4"/><path d="M-11 0l8 8 17-20" stroke="#168d70" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>`).join('');
+}
+
+/* 對話框 */
+let prevFocus=null,cleanup=null;
+function show(title,step,html){
+  if(cleanup){cleanup();cleanup=null}
+  if(!$('overlay').classList.contains('show'))prevFocus=document.activeElement;
+  $('dTitle').textContent=title;$('dStep').textContent=step;$('dBody').innerHTML=html;
+  $('overlay').classList.add('show');$('overlay').querySelector('.dialog').scrollTop=0;
+}
+function close(){if(cleanup){cleanup();cleanup=null}$('overlay').classList.remove('show');$('dBody').innerHTML='';if(prevFocus&&prevFocus.focus)prevFocus.focus()}
+function btn(text,fn,cls='primary'){const b=document.createElement('button');b.type='button';b.className='btn '+cls;b.textContent=text;b.addEventListener('click',fn);return b}
+function acts(...bs){const d=document.createElement('div');d.className='acts';bs.forEach(b=>d.appendChild(b));$('dBody').appendChild(d);return d}
+function setMsg(text,kind=''){const m=$('msg');if(m){m.className='msg '+kind;m.textContent=text}}
+
+function finish(key,stars,lesson){
+  const first=!starOf(key);state.stars[key]=Math.max(starOf(key),stars);save();refresh();report();sfx('win');
+  show('過關！',GAMES[key].icon+' '+GAMES[key].name,`<div class="bigstars" aria-label="${stars} 顆星">${[0,1,2].map(i=>`<span>${i<stars?'★':'☆'}</span>`).join('')}</div><div class="result">${lesson}</div>${first?'<p class="muted">島上多了一個綠色勾勾，回地圖看看。</p>':''}`);
+  const next=ORDER.find(k=>!starOf(k));
+  acts(btn('↻ 再玩一次',()=>openGame(key),''),next?btn('下一關：'+GAMES[next].name,()=>openGame(next)):btn('🏅 領取島民證',certificate));
+}
+function retry(key,text){sfx('bad');show('再試一次',GAMES[key].icon+' '+GAMES[key].name,`<div class="msg bad">${text}</div>`);acts(btn('回地圖',close,''),btn('↻ 再挑戰',()=>openGame(key)))}
+function openGame(id){sfx('tap');({port:gamePort,hotel:gameHotel,transit:gameTransit,view:gameView,center:gameCenter})[id]()}
+
+/* ───── 1. 碼頭找碴 ───── */
+const HOTS={
+  stairs:{name:'入口只有階梯',why:'輪椅、嬰兒車、拖行李箱的旅客都上不去。',fix:'已加上斜坡與扶手'},
+  counter:{name:'售票櫃台太高',why:'坐輪椅的旅客搆不到窗口，也看不到服務人員。',fix:'已增設低櫃台'},
+  sign:{name:'指標字太小、沒箭頭',why:'字小、沒圖示、沒方向，第一次來的人都會迷路。',fix:'已換成大字＋圖示＋箭頭'},
+  speaker:{name:'登船資訊只有廣播',why:'聽障旅客、戴耳機或環境吵的時候都會錯過。',fix:'已加上文字看板'},
+  tactile:{name:'導盲磚被擋住',why:'地上黃色有凸條的是導盲磚。視障旅客沿著它走，會直接撞上機車和貨物。',fix:'已淨空導盲磚'}
+};
+const chk=(x,y)=>`<g transform="translate(${x} ${y})"><circle r="11" fill="#fff" stroke="#159571" stroke-width="3"/><path d="M-5 0l4 4 7-9" stroke="#168d70" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>`;
+function portScene(){return `<svg id="portSvg" viewBox="0 0 360 300" role="img" aria-label="碼頭售票處場景，藏了五個不友善的設計" xmlns="http://www.w3.org/2000/svg">
+<rect width="360" height="300" fill="#d5f0f5"/><rect y="118" width="360" height="90" fill="#7fcbd6"/>
+<path d="M204 150q10-6 20 0t20 0M150 132q8-5 16 0t16 0" stroke="#fff" opacity=".7" fill="none" stroke-width="2"/>
+<text x="262" y="184" font-size="40">⛴️</text>
+<rect y="200" width="360" height="100" fill="#ead9b4"/>
+<path d="M6 62L104 28L202 62Z" fill="#ef9f54"/><rect x="14" y="62" width="180" height="140" fill="#fff8e6" stroke="#d9c9a0" stroke-width="2"/>
+<rect x="20" y="90" width="62" height="16" rx="3" fill="#0c777b"/><text x="51" y="102" font-size="9.5" fill="#fff" text-anchor="middle" font-weight="700">碼頭大廳</text>
+<rect x="30" y="112" width="40" height="74" fill="#8a6a4b"/><circle cx="62" cy="150" r="2.5" fill="#f4d58a"/>
+<rect x="104" y="68" width="80" height="17" rx="3" fill="#e2684a"/><text x="144" y="80.5" font-size="10" fill="#fff" text-anchor="middle" font-weight="700">🎫 售票櫃台</text><rect x="104" y="90" width="80" height="44" fill="#bfe6ee" stroke="#6aa9b5" stroke-width="2"/><text x="130" y="126" font-size="26">🧑‍💼</text><rect x="100" y="134" width="88" height="7" fill="#a97650"/><rect x="104" y="141" width="80" height="59" fill="#f1e2bd" stroke="#d9c9a0"/>
+<text x="150" y="202" font-size="26">🧑‍🦽</text>
+<g class="bad-stairs" fill="#b9b3a6" stroke="#8d8778"><rect x="24" y="186" width="52" height="10"/><rect x="20" y="196" width="60" height="10"/><rect x="16" y="206" width="68" height="10"/></g>
+<g class="fix-stairs" style="display:none"><rect x="24" y="186" width="52" height="30" fill="#b9b3a6" stroke="#8d8778"/><path d="M76 186L140 216H76Z" fill="#9fc4bb" stroke="#5f8f86"/><path d="M76 170L140 200M76 170V186M140 200V216" stroke="#44605b" stroke-width="2.5" fill="none"/>${chk(46,200)}</g>
+<g class="fix-counter" style="display:none"><rect x="146" y="146" width="40" height="22" fill="#bfe6ee" stroke="#6aa9b5" stroke-width="2"/><rect x="142" y="168" width="48" height="6" fill="#a97650"/><text x="166" y="162" font-size="9" fill="#0c777b" text-anchor="middle" font-weight="700">低櫃台</text>${chk(190,146)}</g>
+<rect x="234" y="96" width="4" height="112" fill="#8b7a5c"/>
+<g class="bad-sign"><rect x="206" y="62" width="60" height="34" rx="4" fill="#fff" stroke="#8b7a5c" stroke-width="2"/><text x="236" y="81" font-size="3.8" text-anchor="middle" fill="#888">請旅客依現場指示前往指定位置</text></g>
+<g class="fix-sign" style="display:none"><rect x="202" y="60" width="68" height="38" rx="5" fill="#0c777b"/><text x="236" y="84" font-size="13" text-anchor="middle" fill="#fff" font-weight="700">⛴ 登船 ➜</text>${chk(270,60)}</g>
+<rect x="318" y="88" width="4" height="120" fill="#8b7a5c"/><text x="298" y="86" font-size="30">📢</text>
+<path class="bad-speaker" d="M336 60q8 10 0 20M343 54q13 16 0 32" stroke="#e2684a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<g class="fix-speaker" style="display:none"><rect x="286" y="94" width="68" height="22" rx="3" fill="#143a33"/><text x="320" y="109" font-size="10" fill="#ffd95a" text-anchor="middle" font-weight="700">09:30 登船</text>${chk(350,92)}</g>
+<defs><pattern id="tac" width="20" height="18" patternUnits="userSpaceOnUse"><rect width="20" height="18" fill="#f5c518" stroke="#b98a00" stroke-width="1"/><path d="M4 5h12M4 9h12M4 13h12" stroke="#b98a00" stroke-width="2" stroke-linecap="round"/></pattern></defs><rect y="234" width="360" height="18" fill="url(#tac)"/><text x="96" y="256" font-size="30">🧑‍🦯</text><text x="134" y="238" font-size="13" fill="#e2684a" font-weight="900">➜</text>
+<g class="bad-tactile"><text x="228" y="256" font-size="36">🛵</text><text x="274" y="254" font-size="26">📦</text></g>
+<g class="fix-tactile" style="display:none">${chk(268,243)}</g>
+<text x="22" y="292" font-size="24">🧳</text><text x="322" y="292" font-size="24">🪴</text>
+<rect class="hot" data-hot="stairs" x="14" y="180" width="76" height="40"/>
+<rect class="hot" data-hot="counter" x="98" y="64" width="94" height="112"/><rect class="hot" data-hot="counter" x="146" y="176" width="40" height="28"/>
+<rect class="hot" data-hot="sign" x="200" y="56" width="74" height="46"/>
+<rect class="hot" data-hot="speaker" x="290" y="46" width="66" height="48"/>
+<rect class="hot" data-hot="tactile" x="222" y="220" width="88" height="44"/>
+</svg>`}
+function gamePort(){
+  const found=[];let misses=0,hints=0;const NS='http://www.w3.org/2000/svg';
+  show('碼頭找碴','第 1 關 · 用點的',`<div class="brief">這個碼頭藏了 <b>5 個不友善的設計</b>。直接點畫面上你覺得有問題的地方，找到就會當場改好。</div>
+  <div class="scenebox">${portScene()}</div>
+  <div class="chips" id="chips"></div><div id="msg" class="msg" aria-live="polite">找到 0 / 5</div><div id="pa"></div>`);
+  const svg=$('portSvg');
+  const chips=()=>{$('chips').innerHTML=Object.keys(HOTS).map(k=>`<span class="chip ${found.includes(k)?'on':''}">${found.includes(k)?'✅ '+HOTS[k].name:'❓ 還沒找到'}</span>`).join('')};
+  chips();
+  const mark=(x,y,cls,r)=>{const c=document.createElementNS(NS,'circle');c.setAttribute('cx',x);c.setAttribute('cy',y);c.setAttribute('r',r);c.setAttribute('class',cls);c.style.pointerEvents='none';svg.appendChild(c);setTimeout(()=>c.remove(),1500)};
+  const hintBtn=btn('💡 給我提示',()=>{const k=Object.keys(HOTS).find(k=>!found.includes(k));if(!k)return;hints++;const r=svg.querySelector(`[data-hot="${k}"]`);mark(+r.getAttribute('x')+r.getAttribute('width')/2,+r.getAttribute('y')+r.getAttribute('height')/2,'ring',26);setMsg('看看閃爍的地方。','bad')},'');
+  $('pa').appendChild(hintBtn);
+  svg.addEventListener('click',e=>{
+    const h=e.target.closest('[data-hot]');const r=svg.getBoundingClientRect();
+    const x=(e.clientX-r.left)/r.width*360,y=(e.clientY-r.top)/r.height*300;
+    if(!h){misses++;sfx('bad');mark(x,y,'miss',10);setMsg('這裡看起來沒問題，再找找。找到 '+found.length+' / 5');return}
+    const k=h.dataset.hot;if(found.includes(k)){setMsg('這個已經改好了：'+HOTS[k].fix);return}
+    found.push(k);sfx('good');
+    svg.querySelectorAll('.bad-'+k).forEach(n=>n.style.display='none');svg.querySelectorAll('.fix-'+k).forEach(n=>n.style.display='');
+    chips();setMsg(`找到了！${HOTS[k].name}：${HOTS[k].why} ➜ ${HOTS[k].fix}（${found.length} / 5）`,'good');
+    if(found.length===5){hintBtn.remove();const p=misses+hints*2;$('pa').appendChild(btn('🏗️ 碼頭改造完成',()=>finish('port',p<=2?3:p<=6?2:1,'你把階梯、高櫃台、小字指標、純廣播、被擋住的導盲磚都改好了。<br>這些改變不只幫到身心障礙旅客，拖行李、推嬰兒車、第一次來的人也都更好走。')))}
+  });
+}
+
+/* ───── 2. 旅館接待王 ───── */
+const TOOLS={ramp:['♿','斜坡板'],card:['🖼️','圖片步驟卡'],pad:['📝','筆談板'],voice:['🔊','語音報讀']};
+const GUESTS=[
+  {e:'🧑‍🦽',n:'使用輪椅的旅客',say:'門口有階梯，我進不來。',ok:'ramp',thx:'斜坡板一架，輪椅就能自己進門。',hint:'他需要跨過階梯的方法。'},
+  {e:'👨‍🍼',n:'推嬰兒車的爸爸',say:'嬰兒車推不上階梯，寶寶在睡覺不能抱。',ok:'ramp',thx:'斜坡板也幫到推嬰兒車的人。',hint:'輪子要怎麼上階梯？'},
+  {e:'👵',n:'第一次住旅館的阿嬤',say:'你講好多步驟，我記不住。',ok:'card',thx:'圖片一步一步看，照著做就好。',hint:'她需要可以慢慢看、照著做的東西。'},
+  {e:'🙋',n:'不熟中文的外國旅客',say:'Sorry… 告示全是中文字，我看不懂。',ok:'card',thx:'圖片不用翻譯，一看就懂。',hint:'什麼東西不用懂中文也看得懂？'},
+  {e:'🧏',n:'聽障旅客',say:'（指指耳朵）我聽不到你說話。',ok:'pad',thx:'用寫的，你問我答都沒問題。',hint:'他想和你一來一往地溝通，但不靠聲音。'},
+  {e:'😷',n:'感冒失聲的旅客',say:'（沙啞）我…喉嚨…說不出話…',ok:'pad',thx:'說不出話的時候，寫字就能溝通。',hint:'他說不出話，但手可以動。'},
+  {e:'🧑‍🦯',n:'視障旅客',say:'我看不到房卡上的房號和早餐時間。',ok:'voice',thx:'把資訊唸出來，他就能自己掌握。',hint:'看不到的資訊，可以改用什麼方式接收？'},
+  {e:'👴',n:'忘了帶老花眼鏡的阿公',say:'入住須知的字太小，我看不清楚。',ok:'voice',thx:'用聽的，不用眼鏡也沒問題。',hint:'字看不清楚，還能怎麼知道內容？'}];
+function gameHotel(){
+  const q=shuffle(GUESTS);let i=0,wrong=0,locked=false;const used={ramp:[],card:[],pad:[],voice:[]};
+  show('旅館接待王','第 2 關 · 遞工具',`<div class="brief">你是櫃台人員。旅客會一位一位走進來，先看他遇到什麼狀況，再從下面<b>選一樣工具遞給他</b>。</div>
+  <div class="hud"><span id="hProg"></span><span id="hDots"></span></div>
+  <div class="lobby"><div class="gface" id="hFace"></div><div class="bubble"><b id="hName"></b><span id="hSay"></span></div></div>
+  <div class="tray" id="hTray">${Object.entries(TOOLS).map(([id,t])=>`<button type="button" class="tool" data-tool="${id}"><span>${t[0]}</span>${t[1]}</button>`).join('')}</div>
+  <div id="msg" class="msg" aria-live="polite"></div><div id="hNext"></div>`);
+  const tools=[...document.querySelectorAll('[data-tool]')],face=$('hFace');
+  const paint=()=>{const g=q[i];locked=false;face.textContent=g.e;face.classList.remove('in','happy');void face.offsetWidth;face.classList.add('in');
+    $('hName').textContent=g.n;$('hSay').textContent=g.say;$('hProg').textContent=`第 ${i+1} / ${q.length} 位旅客`;$('hDots').textContent='😊'.repeat(i)+'▫️'.repeat(q.length-i);
+    tools.forEach(b=>{b.disabled=false;b.classList.remove('hit','nope')});$('hNext').innerHTML='';setMsg('選一樣工具遞給他。')};
+  const pick=b=>{if(locked)return;const g=q[i],id=b.dataset.tool;
+    if(id!==g.ok){wrong++;sfx('bad');b.disabled=true;b.classList.add('nope');setMsg('這個幫不上忙。提示：'+g.hint,'bad');return}
+    locked=true;sfx('good');used[id].push(g.e);b.classList.add('hit');tools.forEach(x=>{if(x!==b)x.disabled=true});
+    face.classList.add('happy');$('hSay').textContent='謝謝你！😊';$('hDots').textContent='😊'.repeat(i+1)+'▫️'.repeat(q.length-i-1);
+    setMsg(TOOLS[id][0]+' '+g.thx,'good');
+    const last=i===q.length-1;const nb=btn(last?'看今天的成果':'下一位旅客 →',()=>{if(!last){i++;paint();return}
+      finish('hotel',wrong<=1?3:wrong<=4?2:1,`8 位旅客都順利入住了。看看每樣工具幫到誰：<br>${Object.entries(TOOLS).map(([k,t])=>`${t[0]} <b>${t[1]}</b>：${used[k].join(' ')}`).join('<br>')}<br><br>同一樣工具常常幫到好幾種人。真的不確定時，直接問一句「需要什麼協助嗎？」就對了。`)});
+    nb.classList.add('wide');$('hNext').appendChild(nb)};
+  tools.forEach(b=>b.onclick=()=>pick(b));
+  paint();
+}
+
+/* ───── 3. 同理心車站 ───── */
+function gameTransit(){
+  const T='同理心車站';
+  const R1=[['接駁車改到幾號月台？',['2 號','3 號','8 號'],1],['幾點以前要上車？',['9:20','9:40','10:40'],1],['從哪個出口上車？',['A 出口','B 出口','D 出口'],1]];
+  const R2=[['到幾號月台？',['5 號','6 號','9 號'],0],['幾點以前上車？',['10:02','10:12','10:20'],2],['從哪個出口？',['A 出口','C 出口','E 出口'],1]];
+  const CARDS2=`<div class="steps"><div class="scard"><span>🚌</span><small>第 1 步</small>到 <b>5 號</b>月台</div><div class="scard"><span>🕙</span><small>第 2 步</small><b>10:20</b> 以前上車</div><div class="scard"><span>🚪</span><small>第 3 步</small>從 <b>C 出口</b></div></div>`;
+  let s1=0,s2=0,wrongB=0;
+  const wide=b=>{b.classList.add('wide');return b};
+  const ask=(step,top,qs,i,score,done)=>{const q=qs[i];
+    show(T,step,`${top}<div class="hud"><span>第 ${i+1} / ${qs.length} 題</span></div><div class="qtext">${q[0]}</div><div class="opts">${q[1].map((o,j)=>`<button type="button" class="btn" data-o="${j}">${o}</button>`).join('')}</div>`);
+    document.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>{sfx('tap');const sc=score+(+b.dataset.o===q[2]?1:0);i+1<qs.length?ask(step,top,qs,i+1,sc,done):done(sc)})};
+  const intro=()=>{show(T,'第 3 關 · 兩段小體驗',`<div class="brief">這一關不考你，只請你<b>感受一下</b>：<br>① 資訊又長又快、只講一次，是什麼感覺？<br>② 壓力一點一點疊上來，是什麼感覺？</div><p class="muted">這只是很小的一段體驗。每位智能障礙、情緒行為障礙的同學狀況都不一樣。</p><div class="msg">體驗一：車站要廣播了，內容<b>只出現 5 秒</b>，請盡量記住。</div>`);acts(wide(btn('▶ 開始聽廣播',listen)))};
+  const listen=()=>{sfx('bad');show(T,'體驗一 · 廣播中（只播一次）',`<div class="rush">📢 各位旅客請注意往碼頭的接駁車臨時改到3號月台請在9點40分以前從B出口上車並且準備好綠色票卡謝謝合作</div><div class="timerbar"><div></div></div>`);
+    const tm=setTimeout(()=>{cleanup=null;ask('體驗一 · 你記得多少？','<div class="msg">廣播結束了，不會再播。</div>',R1,0,0,after1)},5000);cleanup=()=>clearTimeout(tm)};
+  const after1=sc=>{s1=sc;show(T,'體驗一 · 結果',`<div class="bignum">${s1} / 3</div><div class="msg bad">${s1===3?'你記憶力很好！但應該也覺得很趕、很有壓力吧？':'一次要記住這麼多，真的很難。'}<br><br>有些<b>智能障礙</b>的同學，理解和記住一長串訊息需要比較多時間。老師的指令、車站的廣播，對他們來說常常就像剛剛那樣：太長、太快、只講一次。</div><p>如果站務員換個方式說呢？</p>`);acts(wide(btn('換個方式再試一次',()=>ask('體驗一 · 步驟卡版本',`<div class="msg good">這次資訊拆成三張步驟卡，而且<b>一直留在畫面上</b>。</div>${CARDS2}`,R2,0,0,after2))))};
+  const after2=sc=>{s2=sc;sfx('good');show(T,'體驗一 · 比一比',`<div class="versus"><div><small>一長串廣播</small><b>${s1} / 3</b></div><span>➜</span><div class="win"><small>步驟卡</small><b>${s2} / 3</b></div></div><div class="msg good">你沒有變，是<b>資訊變友善了</b>。<br>拆成小步驟、配上圖示、可以回頭再看，這三件事對智能障礙的同學特別重要，對每個人也都有幫助。</div>`);acts(wide(btn('體驗二：情緒溫度計 →',build)))};
+  const face=t=>t>=80?'😫':t>=60?'😣':t>30?'😟':'😌';
+  const thermo=t=>`<div class="tface"><span>${face(t)}</span>小安的壓力 ${t}</div><div class="thermo ${t>=60?'hot':t>30?'mid':''}"><div style="width:${t}%"></div></div>`;
+  const EV=[['📢','接駁車臨時改月台，原本記好的計畫全亂了。',20],['👥','月台擠滿了人，廣播又大聲又刺耳。',20],['🗯️','同學在後面催：「快一點啦，你很慢欸！」',25]];
+  const build=()=>{let t=20,k=0;
+    show(T,'體驗二 · 情緒溫度計',`<div class="brief">小安有<b>情緒行為障礙</b>，壓力大的時候，情緒比較難自己降下來。今天他要搭車去碼頭。按「繼續走」，看看路上發生什麼事。</div><div id="th">${thermo(t)}</div><div id="evs"></div><div id="bn"></div>`);
+    const nb=wide(btn('繼續走 →',()=>{const e=EV[k++];t+=e[2];sfx('bad');$('th').innerHTML=thermo(t);
+      $('evs').insertAdjacentHTML('beforeend',`<div class="guest no"><span class="ic">${e[0]}</span><div>${e[1]}<small>壓力 +${e[2]}</small></div></div>`);
+      if(k===EV.length){nb.remove();$('evs').insertAdjacentHTML('beforeend','<div class="msg bad">小安蹲下來摀住耳朵，大叫了一聲。<br>旁邊的人只看到這一幕，覺得他「亂發脾氣」。但你看到了：壓力是<b>一點一點疊上來</b>的，他不是故意的。</div>');$('bn').appendChild(wide(btn('我是他的同學，我來幫忙',()=>calm(t))))}
+      nb.scrollIntoView({block:'nearest'})}));
+    $('bn').appendChild(nb)};
+  const ACT=[['大聲說：「你冷靜一點好不好！」',10,'被吼只會更緊張。'],['陪他走到人少的安靜角落',-25,'離開吵雜和人群，壓力來源就少了。'],['一直追問：「你到底怎麼了？」',10,'情緒滿載的時候，很難回答問題。'],['安靜待在旁邊，等他一下',-20,'不催、不逼，給他時間慢慢穩下來。'],['拿手機錄影，叫大家來看',15,'被圍觀會更難受，也很不尊重他。'],['等他平靜後，再慢慢告訴他新的月台',-20,'平靜之後才聽得進去。計畫重新清楚，就安心了。']];
+  const calm=t=>{const list=shuffle(ACT);
+    show(T,'體驗二 · 你會怎麼做？',`<div class="brief">每個做法都會讓溫度計上升或下降。<b>點點看</b>，把小安的壓力降到 30 以下。</div><div id="th" class="stick">${thermo(t)}</div><div id="msg" class="msg" aria-live="polite">選一個做法試試。</div><div class="actlist">${list.map((a,i)=>`<button type="button" class="item" data-a="${i}"><span class="tx"><strong>${a[0]}</strong></span><span class="pr"></span></button>`).join('')}</div><div id="bn"></div>`);
+    document.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const a=list[+b.dataset.a];b.disabled=true;t=Math.max(0,Math.min(100,t+a[1]));
+      b.classList.add(a[1]<0?'on':'hurt');b.querySelector('.pr').textContent=(a[1]>0?'▲ +':'▼ ')+a[1];if(a[1]>0){wrongB++;sfx('bad')}else sfx('good');
+      $('th').innerHTML=thermo(t);setMsg(a[2],a[1]<0?'good':'bad');
+      if(t<=30&&!$('bn').firstChild){document.querySelectorAll('[data-a]').forEach(x=>x.disabled=true);setMsg(a[2]+' 小安慢慢平靜下來了。','good');
+        $('bn').appendChild(wide(btn('完成體驗',()=>finish('transit',3-Math.min(2,wrongB),`<b>體驗一</b>：一長串廣播你記得 ${s1} / 3，換成步驟卡後 ${s2} / 3。<br>➜ 對智能障礙的同學：說短一點、拆成步驟、配上圖、可以再看一次。<br><br><b>體驗二</b>：小安的情緒是一點一點累積的，不是故意鬧脾氣。<br>➜ 對情緒行為障礙的同學：不吼、不追問、不圍觀；給空間、給時間，平靜後再好好說。`))))}})};
+  intro();
+}
+
+/* ───── 4. 神隊友滑卡 ───── */
+const CARDS=[
+  ['看到同學推輪椅上坡，沒問就直接從後面幫他推',false,'突然被推會嚇到，也可能有危險。先問一句「需要幫忙嗎？」'],
+  ['先問「需要幫忙嗎？」，再照對方說的方式協助',true,'對方最清楚自己需要什麼，問了再做就是尊重。'],
+  ['和聽障同學聊天時，一直看著手語翻譯員說話',false,'說話的對象是同學本人，請看著他。'],
+  ['看到導盲犬好可愛，上前摸摸牠、餵零食',false,'導盲犬正在工作，分心會讓主人有危險。不摸、不餵、不呼叫。'],
+  ['分組時主動邀請特教同學，一起討論誰負責什麼',true,'參與感來自一起決定分工，不是被分配或被排除。'],
+  ['同學動作比較慢，乾脆把他的工作全部做完',false,'全部代勞等於拿走他的參與機會。給時間、給方法更好。'],
+  ['把導覽流程拆成步驟卡，先示範一次再讓同學試',true,'分步驟、先示範，對新手和需要多一點時間的人都有幫助。'],
+  ['對同學說「你好可憐喔，這樣還來上學好勵志」',false,'同情和過度稱讚都讓人不舒服。他就是同學，用平常心相處。'],
+  ['同學在吵雜的地方不舒服，陪他到安靜角落休息一下',true,'有些人對聲音、光線特別敏感，換個環境就能繼續參與。'],
+  ['報告的投影片加上字幕和圖片說明',true,'多一種取得資訊的方式，聽障、視障、坐後排的同學都受益。']];
+function gameView(){
+  const deck=shuffle(CARDS);let i=0,score=0,combo=0,locked=false;
+  show('神隊友滑卡','第 4 關 · 左滑右滑',`<div class="brief">每張卡是一個校園或導覽現場的做法。<b>右滑</b>＝神隊友 👍，<b>左滑</b>＝雷隊友 👎。也可以按下面的按鈕。</div>
+  <div class="hud"><span id="vProg"></span><span id="vCombo"></span></div>
+  <div class="deck"><div class="swipe" id="swipe" tabindex="0"><span class="stamp r">神隊友</span><span class="stamp l">雷隊友</span><span id="vText"></span></div></div>
+  <div class="swipebtns" id="vBtns"><button type="button" class="btn no" id="vNo">👎 雷隊友</button><button type="button" class="btn yes" id="vYes">👍 神隊友</button></div>
+  <div id="msg" class="msg" aria-live="polite">拖動卡片試試看。</div><div id="vNext"></div>`);
+  const card=$('swipe'),sr=card.querySelector('.stamp.r'),sl=card.querySelector('.stamp.l');
+  const paint=()=>{locked=false;card.className='swipe';card.style.transform='';sr.style.opacity=sl.style.opacity=0;$('vText').textContent=deck[i][0];$('vProg').textContent=`第 ${i+1} / ${deck.length} 張 · 答對 ${score}`;$('vCombo').textContent=combo>=2?`🔥 連續答對 ${combo}`:'';$('vBtns').hidden=false;$('vNext').innerHTML=''};
+  const decide=says=>{if(locked)return;locked=true;const c=deck[i],ok=says===c[1];card.style.transform='';sr.style.opacity=sl.style.opacity=0;card.classList.add(ok?'right':'wrong');
+    if(ok){score++;combo++;sfx('good')}else{combo=0;sfx('bad')}
+    setMsg(`${ok?'答對了！':'再想想。'}這是${c[1]?'神隊友 👍':'雷隊友 👎'}：${c[2]}`,ok?'good':'bad');
+    $('vBtns').hidden=true;$('vProg').textContent=`第 ${i+1} / ${deck.length} 張 · 答對 ${score}`;$('vCombo').textContent=combo>=2?`🔥 連續答對 ${combo}`:'';
+    const last=i===deck.length-1;const nb=btn(last?'看結果':'下一張 →',()=>{if(!last){i++;paint();setMsg('拖動卡片，或按按鈕。');return}
+      if(score<5)retry('view',`答對 ${score} / 10。至少要 5 張才過關，再滑一次看看。`);
+      else finish('view',score>=9?3:score>=7?2:1,`10 張答對 ${score} 張。<br>神隊友的共同點：<b>先問再幫、看著本人說話、給方法不代勞、用平常心相處</b>。帶團導覽時對旅客也是一樣。`)});
+    nb.classList.add('wide');$('vNext').appendChild(nb);nb.focus()};
+  let sx=0,dx=0,drag=false;
+  card.onpointerdown=e=>{if(locked)return;drag=true;sx=e.clientX;dx=0;try{card.setPointerCapture(e.pointerId)}catch(_){}card.style.transition='none'};
+  card.onpointermove=e=>{if(!drag)return;dx=e.clientX-sx;card.style.transform=`translateX(${dx}px) rotate(${dx/18}deg)`;sr.style.opacity=Math.max(0,Math.min(1,dx/70));sl.style.opacity=Math.max(0,Math.min(1,-dx/70))};
+  const end=()=>{if(!drag)return;drag=false;card.style.transition='';if(Math.abs(dx)>70)decide(dx>0);else{card.style.transform='';sr.style.opacity=sl.style.opacity=0}dx=0};
+  card.onpointerup=end;card.onpointercancel=end;
+  card.onkeydown=e=>{if(e.key==='ArrowRight')decide(true);if(e.key==='ArrowLeft')decide(false)};
+  $('vYes').onclick=()=>decide(true);$('vNo').onclick=()=>decide(false);
+  paint();
+}
+
+/* ───── 5. 友善翻翻牌 ───── */
+const PAIRS=[
+  ['♿','無障礙設施','無障礙設施不只給輪椅使用者，推嬰兒車、拄拐杖的人也需要。'],
+  ['🦮','導盲犬工作中','遇到導盲犬：不摸、不餵、不呼叫，也不能拒絕牠進入店家。'],
+  ['🤟','手語也是語言','手語有自己的文法，是一種完整的語言。'],
+  ['📝','筆談溝通','不會手語沒關係，用紙筆或手機打字也能聊。'],
+  ['<svg viewBox="0 0 56 58" width="60" height="62" aria-hidden="true"><rect x="2" y="4" width="26" height="26" fill="#f5c518" stroke="#b98a00" stroke-width="2"/><path d="M9 9v16M15 9v16M21 9v16" stroke="#b98a00" stroke-width="3" stroke-linecap="round"/><rect x="28" y="4" width="26" height="26" fill="#f5c518" stroke="#b98a00" stroke-width="2"/><g fill="#b98a00"><circle cx="35" cy="11" r="2.3"/><circle cx="41" cy="11" r="2.3"/><circle cx="47" cy="11" r="2.3"/><circle cx="35" cy="17" r="2.3"/><circle cx="41" cy="17" r="2.3"/><circle cx="47" cy="17" r="2.3"/><circle cx="35" cy="23" r="2.3"/><circle cx="41" cy="23" r="2.3"/><circle cx="47" cy="23" r="2.3"/></g><text x="28" y="54" font-size="20" text-anchor="middle">🧑‍🦯</text></svg>','導盲磚別擋住','導盲磚是視障者的路，機車和招牌請別放在上面。'],
+  ['<svg viewBox="0 0 56 56" width="60" height="60" aria-hidden="true"><rect x="3" y="6" width="50" height="38" rx="4" fill="#2b3a42"/><circle cx="28" cy="17" r="6" fill="#9fd3e0"/><path d="M16 34q12-14 24 0z" fill="#9fd3e0"/><rect x="6" y="31" width="44" height="10" rx="2" fill="#000"/><text x="28" y="39" font-size="8" fill="#fff" text-anchor="middle" font-weight="700">歡迎光臨！</text><rect x="23" y="44" width="10" height="4" fill="#2b3a42"/><rect x="15" y="48" width="26" height="3.5" rx="1.7" fill="#2b3a42"/></svg>','字幕看得見','字幕讓聽障者、在吵雜環境的人都能接收資訊。']];
+function gameCenter(){
+  const deck=shuffle(PAIRS.flatMap((p,i)=>[{p:i,t:'ico',v:p[0]},{p:i,t:'txt',v:p[1]}]));
+  let open=[],moves=0,lock=false;const matched=new Set();
+  show('友善翻翻牌','第 5 關 · 記憶配對',`<div class="brief">把<b>符號</b>和它的<b>意思</b>配成一對。一次翻兩張，記住位置。</div>
+  <div class="hud"><span id="cMoves">翻了 0 次</span><span id="cPairs">配對 0 / 6</span></div>
+  <div class="mem" id="mem"></div><div id="msg" class="msg" aria-live="polite">點一張牌開始。</div>`);
+  const draw=()=>{$('mem').innerHTML=deck.map((c,i)=>{const m=matched.has(c.p),o=m||open.includes(i);return `<button type="button" class="mcard ${o?'open '+c.t:''} ${m?'matched':''}" data-i="${i}" aria-label="${o?esc(PAIRS[c.p][1])+(c.t==='ico'?'的圖示':''):'蓋著的牌'}">${o?(c.t==='ico'?c.v:esc(c.v)):'?'}</button>`}).join('');$('cMoves').textContent='翻了 '+moves+' 次';$('cPairs').textContent='配對 '+matched.size+' / 6'};
+  draw();
+  $('mem').onclick=e=>{const b=e.target.closest('.mcard');if(!b||lock)return;const i=+b.dataset.i;if(open.includes(i)||matched.has(deck[i].p))return;
+    open.push(i);sfx('tap');draw();if(open.length<2)return;
+    moves++;const[a,c]=open.map(x=>deck[x]);
+    if(a.p===c.p){matched.add(a.p);open=[];sfx('good');draw();setMsg('配對成功！'+PAIRS[a.p][2],'good');
+      if(matched.size===6)setTimeout(()=>finish('center',moves<=10?3:moves<=15?2:1,`翻了 ${moves} 次完成 6 組配對。<br>下次在車站、餐廳、景點看到這些符號和設施，你就知道它們在幫誰，也知道怎麼不擋到別人的路。`),900)}
+    else{lock=true;setMsg('不是一對，記住它們的位置。');setTimeout(()=>{open=[];lock=false;if($('mem'))draw()},900)}
+  };
+}
+
+/* 旅客驗收、島民證、說明 */
+const VISITORS=[
+  {e:'🧑‍🦽',n:'使用輪椅的旅客',ask:'想從碼頭順利上船',k:'port'},
+  {e:'👵',n:'第一次住旅館的阿嬤',ask:'希望入住步驟有圖片可以照著做',k:'hotel'},
+  {e:'🧑',n:'行程一變就很緊張的旅客',ask:'希望有人把變動拆成步驟慢慢說',k:'transit'},
+  {e:'🧑‍🎓',n:'剛轉來的新同學',ask:'希望分組時有人邀請他',k:'view'},
+  {e:'🧑‍🦯',n:'帶著導盲犬的旅客',ask:'希望大家認得導盲犬和導盲磚',k:'center'}];
+function audit(){
+  const n=ORDER.filter(k=>starOf(k)>0).length;
+  show('旅客來訪','驗收 · 已完成 '+n+' / 5 關',VISITORS.map((v,i)=>{const ok=starOf(v.k)>0;return `<div class="guest ${ok?'ok':'no'}" style="animation-delay:${i*.2}s"><span class="ic">${v.e}</span><div><strong>${v.n}</strong><small>${v.ask}</small>${ok?'😊 你的島已經準備好了':'😟 還沒準備好，去「'+GAMES[v.k].name+'」看看'}</div></div>`}).join('')+'<div class="callout">遊戲裡的旅客只是例子。真正遇到時，最好的做法還是直接問對方需要什麼。</div>');
+  acts(btn('回地圖',close,''),...(n===5?[btn('🏅 領取島民證',certificate)]:[]));
+}
+function certificate(){
+  if(ORDER.some(k=>!starOf(k)))return;const total=ORDER.reduce((a,k)=>a+starOf(k),0);sfx('win');
+  show('友善島民證','五關全部完成',`<div class="cert"><div style="font-size:40px">🏅🏝️</div><h3>友善不設限 · 島民證</h3><div class="nm">${esc(state.name||DEFNAME)}</div><div>完成五項友善挑戰</div><div class="bigstars" style="font-size:26px;letter-spacing:2px">${'★'.repeat(total)}${'☆'.repeat(15-total)}</div><div class="muted">${total} / 15 顆星 · ${new Date().toLocaleDateString('zh-TW')}</div><p style="margin:10px 0 0;font-weight:800;color:var(--sea-deep)">友善的環境，讓每個人都能參與</p></div><p class="muted" style="text-align:center">用手機截圖保存，舉起來給老師看！</p>`);
+  acts(btn('回到我的島',close));
+}
+function help(){
+  show('怎麼玩','遊戲說明',`<div class="brief">🔎 <b>碼頭</b>：在畫面上點出不友善的設計<br>🏨 <b>旅館</b>：看旅客的狀況，遞對的工具<br>💗 <b>車站</b>：兩段小體驗，感受資訊太多、壓力滿載<br>🤝 <b>景點</b>：左右滑卡分辨神隊友<br>🎴 <b>遊客中心</b>：翻牌配對友善符號</div>
+  <p>每關最多 3 顆星，五關都完成就能領島民證。車站的體驗只是很小的一段感受，不代表任何人的全部。</p>
+  <div class="callout"><b>課堂討論</b><br>1. 車站的廣播體驗，讓你想到哪些上課或生活的情境？<br>2. 旅館的四樣工具，除了遊戲裡的旅客，還有誰用得到？<br>3. 滑卡裡哪一張讓你最意外？</div>`);
+  acts(btn('開始探索',close));
+}
+
+$('close').onclick=close;
+$('overlay').addEventListener('click',e=>{if(e.target===$('overlay'))close()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('overlay').classList.contains('show'))close()});
+document.querySelectorAll('.pin').forEach(b=>b.onclick=()=>openGame(b.dataset.id));
+$('audit').onclick=audit;$('certificate').onclick=certificate;$('help').onclick=help;
+$('mute').onclick=()=>{state.mute=!state.mute;save();refresh();sfx('tap')};
+$('reset').onclick=()=>{show('重新開始？','重設確認','<div class="msg bad">這會清除這支手機上的星星和島嶼名稱。</div>');acts(btn('取消',close,''),btn('確定清除',()=>{state={...defaults(),id:state.id,nick:state.nick};save();report();$('islandInput').value='';refresh();close()}))};
+$('islandInput').value=state.name;
+$('islandInput').addEventListener('input',e=>{state.name=e.target.value.trim().slice(0,16);save();$('mapName').textContent='🏝️ '+(state.name||DEFNAME)});
+document.querySelectorAll('.theme').forEach(b=>b.onclick=()=>{state.theme=b.dataset.theme;save();refresh()});
+refresh();
+function askNick(){show('歡迎來到友善島','開始之前','<div class="brief">請輸入你的<b>座號或暱稱</b>，老師會看到全班的闖關進度。</div><input id="nickInput" class="field" maxlength="12" placeholder="例如：15 號" autocomplete="off"><div id="msg" class="msg">不需要填真實姓名。</div>');
+  const go=()=>{const v=$('nickInput').value.trim().slice(0,12);if(!v){setMsg('請先輸入座號或暱稱。','bad');return}state.nick=v;save();report();close()};
+  const b=btn('出發！',go);b.classList.add('wide');acts(b);$('nickInput').addEventListener('keydown',e=>{if(e.key==='Enter')go()})}
+if(ENDPOINT){if(state.nick)report();else askNick()}
+})();
+</script>
+</body></html>
