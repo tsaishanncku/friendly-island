@@ -626,31 +626,47 @@ function audit(){
   show('旅客來訪','驗收 · 已完成 '+n+' / 5 關',VISITORS.map((v,i)=>{const ok=starOf(v.k)>0;return `<div class="guest ${ok?'ok':'no'}" style="animation-delay:${i*.2}s"><span class="ic">${v.e}</span><div><strong>${v.n}</strong><small>${v.ask}</small>${ok?'😊 你的島已經準備好了':'😟 還沒準備好，去「'+GAMES[v.k].name+'」看看'}</div></div>`}).join('')+'<div class="callout">遊戲裡的旅客只是例子。真正遇到時，最好的做法還是直接問對方需要什麼。</div>');
   acts(btn('回地圖',close,''),...(n===5?[btn('🏅 領取島民證',certificate)]:[]));
 }
-function certCanvas(total){
+/* 把地圖上的島（含自己選的海水顏色與島上人物）轉成圖片，畫進島民證 */
+function islandImage(){return new Promise(res=>{try{
+  const svg=$('islandSvg').cloneNode(true);svg.setAttribute('width',1100);svg.setAttribute('height',690);
+  const en=svg.querySelector('#enhancements');if(en)en.innerHTML='';
+  svg.querySelectorAll('#walkers text').forEach(t=>t.setAttribute('text-anchor','middle'));
+  const im=new Image();im.onload=()=>res(im);im.onerror=()=>res(null);setTimeout(()=>res(null),4000);
+  im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(svg));
+}catch(e){res(null)}})}
+function certCanvas(total,im){
   const W=1080,H=1350,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
   const F='"PingFang TC","Noto Sans TC","Microsoft JhengHei","Heiti TC",system-ui,sans-serif';
   const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'#d9f3ec');g.addColorStop(.55,'#ffffff');g.addColorStop(1,'#fff6df');x.fillStyle=g;x.fillRect(0,0,W,H);
   x.strokeStyle='#0c777b';x.lineWidth=14;x.strokeRect(40,40,W-80,H-80);x.lineWidth=4;x.strokeRect(68,68,W-136,H-136);
   x.textAlign='center';x.textBaseline='middle';
   const t=(str,y,size,color,weight)=>{const f=()=>x.font=`${weight||900} ${size}px ${F}`;f();while(x.measureText(str).width>W-190&&size>24){size-=3;f()}x.fillStyle=color;x.fillText(str,W/2,y)};
-  t('🏅🏝️',235,150,'#173b45');
-  t('友善不設限 · 人人都是島民',410,46,'#56717a',800);
-  t('島 民 證',525,124,'#075c60');
-  x.strokeStyle='#f4b64f';x.lineWidth=6;x.beginPath();x.moveTo(300,615);x.lineTo(W-300,615);x.stroke();
-  t(state.name||DEFNAME,725,86,'#173b45');
-  if(state.nick)t('島民：'+state.nick,835,54,'#0c777b',800);
-  t('完成五項友善挑戰',940,46,'#173b45',700);
-  t('★'.repeat(total)+'☆'.repeat(15-total),1025,58,'#e89b1c');
-  t(`${total} / 15 顆星 · ${new Date().toLocaleDateString('zh-TW')}`,1105,40,'#56717a',700);
-  t('友善的環境，讓每個人都能參與',1215,46,'#075c60');
+  const box=(bx,by,bw,bh,r)=>{x.beginPath();x.moveTo(bx+r,by);x.arcTo(bx+bw,by,bx+bw,by+bh,r);x.arcTo(bx+bw,by+bh,bx,by+bh,r);x.arcTo(bx,by+bh,bx,by,r);x.arcTo(bx,by,bx+bw,by,r);x.closePath()};
+  let y0=0;
+  if(im){const bw=880,bh=552,bx=(W-bw)/2,by=104;
+    x.save();box(bx,by,bw,bh,36);x.clip();x.drawImage(im,bx,by,bw,bh);x.restore();
+    x.strokeStyle='#ffffff';x.lineWidth=10;box(bx,by,bw,bh,36);x.stroke();x.strokeStyle='#0c777b';x.lineWidth=3;box(bx-5,by-5,bw+10,bh+10,40);x.stroke();
+    x.font=`900 120px ${F}`;x.fillText('🏅',bx+70,by+70);
+  }else{t('🏅🏝️',300,170,'#173b45');y0=-40}
+  t(state.name||DEFNAME,752+y0,88,'#173b45');
+  t('島 民 證',866+y0,112,'#075c60');
+  x.strokeStyle='#f4b64f';x.lineWidth=6;x.beginPath();x.moveTo(330,938+y0);x.lineTo(W-330,938+y0);x.stroke();
+  if(state.nick)t('島民：'+state.nick,996+y0,52,'#0c777b',800);
+  t('★'.repeat(total)+'☆'.repeat(15-total),1078+y0,56,'#e89b1c');
+  t(`${total} / 15 顆星 · ${new Date().toLocaleDateString('zh-TW')}`,1150+y0,38,'#56717a',700);
+  t('友善的環境，讓每個人都能參與',1226+y0,40,'#075c60');
   return c;
 }
-function certificate(){
+async function certificate(){
   if(ORDER.some(k=>!starOf(k)))return;const total=ORDER.reduce((a,k)=>a+starOf(k),0);sfx('win');
-  let c=null,url='';try{c=certCanvas(total);url=c.toDataURL('image/png')}catch(e){c=null}
+  const nm=state.name||DEFNAME;
+  show('友善島民證','五關全部完成','<div class="msg">島民證製作中…</div>');
+  const im=await islandImage();
+  let c=null,url='';
+  try{c=certCanvas(total,im);url=c.toDataURL('image/png')}catch(e){try{c=certCanvas(total,null);url=c.toDataURL('image/png')}catch(e2){c=null}}
   const fname='島民證_'+String(state.nick||state.name||'友善島').replace(/[\\/:*?"<>|\s]+/g,'')+'.png';
-  show('友善島民證','五關全部完成',c?`<img class="certimg" id="certImg" alt="友善不設限島民證：${esc(state.name||DEFNAME)}，${total} / 15 顆星" src="${url}"><div id="msg" class="msg" aria-live="polite">按「下載 PNG」把島民證存起來，拿給老師換小禮物！如果沒辦法下載，長按圖片也可以儲存。</div>`
-    :`<div class="cert"><div style="font-size:40px">🏅🏝️</div><h3>友善不設限 · 島民證</h3><div class="nm">${esc(state.name||DEFNAME)}</div><div>完成五項友善挑戰</div><div class="muted">${total} / 15 顆星 · ${new Date().toLocaleDateString('zh-TW')}</div></div><p class="muted" style="text-align:center">這台裝置無法產生圖片，請用截圖保存。</p>`);
+  show('友善島民證','五關全部完成',c?`<img class="certimg" id="certImg" alt="${esc(nm)}島民證，${total} / 15 顆星" src="${url}"><div id="msg" class="msg" aria-live="polite">按「下載 PNG」把島民證存起來，拿給老師換小禮物！如果沒辦法下載，長按圖片也可以儲存。</div>`
+    :`<div class="cert"><div style="font-size:40px">🏅🏝️</div><div class="nm">${esc(nm)}</div><h3>島民證</h3><div class="muted">${total} / 15 顆星 · ${new Date().toLocaleDateString('zh-TW')}</div></div><p class="muted" style="text-align:center">這台裝置無法產生圖片，請用截圖保存。</p>`);
   const dl=()=>{sfx('tap');const go=href=>{const a=document.createElement('a');a.href=href;a.download=fname;document.body.appendChild(a);a.click();a.remove();setMsg('已下載「'+fname+'」。找不到檔案的話，長按上面的圖片也可以儲存。','good')};
     if(c.toBlob)c.toBlob(b=>{if(!b){go(url);return}const u=URL.createObjectURL(b);go(u);setTimeout(()=>URL.revokeObjectURL(u),5000)},'image/png');else go(url)};
   acts(btn('回到我的島',close,''),...(c?[btn('⬇️ 下載 PNG',dl)]:[]));
