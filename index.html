@@ -43,12 +43,23 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--sun);outline-of
 .maptitle{position:absolute;top:8px;left:8px;background:rgba(255,255,255,.93);border-radius:12px;padding:5px 10px;font-weight:900;font-size:13px;max-width:70%}
 .pin{position:absolute;transform:translate(-50%,-50%);border:2px solid #fff;background:rgba(255,255,255,.95);color:var(--ink);border-radius:99px;box-shadow:0 4px 14px rgba(24,79,74,.3);padding:5px 10px;min-height:38px;font-size:12px;font-weight:900;white-space:nowrap;animation:bob 2.6s ease-in-out infinite}
 .pin.done{background:var(--good-bg);border-color:#54ab86;animation:none}
-.pin[data-id="port"]{left:20%;top:66%}
+.pin[data-id="port"]{left:17%;top:57%}
 .pin[data-id="hotel"]{left:46%;top:33%}
-.pin[data-id="transit"]{left:78%;top:63%;animation-delay:.5s}
-.pin[data-id="view"]{left:73%;top:25%;animation-delay:1s}
-.pin[data-id="center"]{left:48%;top:76%;animation-delay:1.5s}
+.pin[data-id="transit"]{left:71%;top:29%;animation-delay:.5s}
+.pin[data-id="view"]{left:79%;top:78%;animation-delay:1s}
+.pin.locked{background:rgba(238,243,241,.95);color:var(--muted);animation:none;box-shadow:0 2px 8px rgba(24,79,74,.2)}
+.pin.next{border-color:var(--sun);box-shadow:0 0 0 4px rgba(244,182,79,.45),0 4px 14px rgba(24,79,74,.3)}
+.place.locked{opacity:.6}
+.mine{margin:14px 0 0}
+.mine .field{margin-bottom:8px}
+.mine .themes{margin-bottom:0}
+.who{font-weight:800;color:var(--sea-deep);font-size:14px;margin:0 0 8px}
+.certimg{display:block;width:100%;height:auto;border-radius:14px;border:1px solid var(--line)}
+.pin[data-id="center"]{left:48%;top:85%;animation-delay:1.5s}
 @keyframes bob{50%{transform:translate(-50%,calc(-50% - 4px))}}
+.mapbtn{position:absolute;top:8px;right:8px;border:0;background:rgba(255,255,255,.93);color:var(--sea-deep);border-radius:12px;padding:5px 10px;min-height:36px;font-weight:900;font-size:13px}
+#walkers{pointer-events:none}
+#walkers text{text-anchor:middle;user-select:none;-webkit-user-select:none}
 .mapcap{text-align:center;color:var(--muted);font-size:13px;margin:8px 0 0}
 .cols{display:grid;grid-template-columns:1fr;gap:14px;margin:16px 0 34px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;min-width:0}
@@ -213,10 +224,12 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--sun);outline-of
 
 @media(min-width:760px){
   .cols{grid-template-columns:1.2fr .8fr}
+  .minegrid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
   .hero{display:flex;justify-content:space-between;align-items:end;gap:20px}
   .meters{margin:0;min-width:330px}
   .pin{font-size:14px;padding:8px 14px;min-height:44px}
   .maptitle{font-size:15px;top:14px;left:14px}
+  .mapbtn{font-size:15px;top:14px;right:14px}
   .mapbox{border-width:8px}
 }
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -232,10 +245,29 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--sun);outline-of
 </div></header>
 
 <main class="wrap">
+  <section class="card mine">
+    <h2>我的島</h2>
+    <p class="who" id="who" hidden></p>
+    <div class="minegrid">
+      <div>
+        <label for="islandInput" style="font-weight:800">幫你的島取名字</label>
+        <input id="islandInput" class="field" maxlength="16" placeholder="例如：彩虹出發島" autocomplete="off">
+      </div>
+      <div>
+        <div style="font-weight:800">海水顏色</div>
+        <div id="themes" class="themes">
+          <button class="theme" data-theme="sea">🌊 海洋</button>
+          <button class="theme" data-theme="forest">🌳 森林</button>
+          <button class="theme" data-theme="sunset">🌅 夕陽</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="hero">
     <div>
       <h1>打造一座人人都能玩的島</h1>
-      <p>點地圖上的地標，闖過五個小遊戲，把障礙一個一個變不見。</p>
+      <p>照著環島路線，依序闖過五個小遊戲，把障礙一個一個變不見。</p>
     </div>
     <div class="meters">
       <div class="meter"><strong id="mStars">⭐ 0</strong><span>星星（滿分 15）</span></div>
@@ -246,7 +278,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--sun);outline-of
 
   <div class="mapbox">
     <div class="maptitle" id="mapName">🏝️ 我的友善觀光島</div>
-    <svg id="islandSvg" viewBox="0 0 1100 690" role="img" aria-label="具有碼頭、旅館、交通站和景點的立體風格島嶼，請用地圖上五個按鈕進入任務。" xmlns="http://www.w3.org/2000/svg">
+    <svg id="islandSvg" viewBox="0 0 1100 690" role="img" aria-label="立體風格島嶼，環島路線依序是碼頭、旅館、車站、景點、遊客中心，島上有使用輪椅、拿白手杖帶導盲犬的人，也有長輩、一般旅客和小動物沿著路散步。請用地圖上五個按鈕依序進入任務。" xmlns="http://www.w3.org/2000/svg">
  <defs><linearGradient id="waterG" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#b9edf0"/><stop offset=".6" stop-color="#71c9d1"/><stop offset="1" stop-color="#47b2bf"/></linearGradient><linearGradient id="landG" x1="0" y1="0" x2=".9" y2="1"><stop stop-color="#a8dea6"/><stop offset="1" stop-color="#5cad80"/></linearGradient><linearGradient id="edgeG" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#f7d6a2"/><stop offset="1" stop-color="#c79562"/></linearGradient><filter id="drop"><feGaussianBlur stdDeviation="19"/></filter><pattern id="wavy" width="100" height="76" patternUnits="userSpaceOnUse"><path d="M6 40Q20 28 35 40T64 40M57 70Q71 58 85 70" fill="none" stroke="#ffffff" stroke-opacity=".33" stroke-width="3" stroke-linecap="round"/></pattern><linearGradient id="mountain" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#77b59a"/><stop offset="1" stop-color="#377f7c"/></linearGradient><linearGradient id="goldRoof" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fae6a7"/><stop offset="1" stop-color="#ef9f54"/></linearGradient></defs>
  <rect width="1100" height="690" fill="url(#waterG)"/><rect class="scene-water" width="1100" height="690" fill="url(#wavy)"/><g fill="#ffffff" opacity=".31"><ellipse cx="97" cy="132" rx="78" ry="16"/><ellipse cx="973" cy="112" rx="112" ry="22"/><ellipse cx="954" cy="580" rx="80" ry="12"/></g>
  <!-- boat trails and outer decoration --><g fill="none" stroke="#f1fffb" stroke-width="6" opacity=".75" stroke-linecap="round"><path d="M0 532q82 -18 146 11"/><path d="M978 637q49 23 113 1"/><path d="M0 300q67 15 107 -2"/></g><g transform="translate(76 494)"><ellipse rx="62" ry="12" fill="#2f8390" opacity=".22"/><path d="M-48 -12L44 -12L20 11H-26Z" fill="#f7f4e4"/><path d="M-35 -20L22 -20L35 -12H-47Z" fill="#df805a"/><rect x="-14" y="-43" width="5" height="25" fill="#7e9a8c"/><path d="M-9 -43L18 -20H-9Z" fill="#fff7d2"/></g>
@@ -254,50 +286,44 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--sun);outline-of
  <path d="M158 378C160 312 240 274 320 252C384 209 480 229 531 209C641 172 781 208 852 259C926 282 982 350 972 437C950 526 847 554 769 577C666 619 542 588 455 611C338 597 187 571 164 495Z" transform="translate(0 46)" fill="#246879" opacity=".32" filter="url(#drop)"/>
  <path d="M156 374C156 306 234 272 322 255C381 207 478 228 531 207C643 169 784 213 852 260C933 284 986 348 972 435C949 523 854 549 769 573C667 618 542 586 458 602C338 596 188 560 162 489Z" transform="translate(0 35)" fill="url(#edgeG)" stroke="#be965f" stroke-width="4"/>
  <path d="M156 374C156 306 234 272 322 255C381 207 478 228 531 207C643 169 784 213 852 260C933 284 986 348 972 435C949 523 854 549 769 573C667 618 542 586 458 602C338 596 188 560 162 489Z" fill="url(#landG)" stroke="#f8e6ae" stroke-width="17" stroke-linejoin="round"/>
- <!-- paths --> <g stroke-linecap="round" fill="none"><path d="M240 475C300 443 335 433 386 409S491 386 531 379S645 421 740 421S823 395 851 337" stroke="#5f9b82" stroke-opacity=".3" stroke-width="39"/><path d="M240 475C300 443 335 433 386 409S491 386 531 379S645 421 740 421S823 395 851 337" stroke="#f0dfad" stroke-width="23"/><path d="M506 366Q576 284 680 262T821 289" stroke="#f5dfad" stroke-width="18"/><path d="M344 409Q384 329 481 301" stroke="#f5dfad" stroke-width="15"/><path d="M742 421Q708 497 647 532" stroke="#f5dfad" stroke-width="16"/></g>
- <!-- hills --> <g><path d="M678 260Q718 165 770 185Q815 169 842 258Q792 306 678 260" fill="url(#mountain)"/><path d="M716 246Q745 178 765 189Q789 192 812 257Q758 274 716 246" fill="#67b398"/><path d="M762 194L746 223L770 215L782 236L796 232Z" fill="#e6e8d5" opacity=".8"/></g>
+ <!-- paths --> <g stroke-linecap="round" fill="none"><path d="M245 478C330 440 420 414 515 405C600 396 665 366 752 360C850 352 945 400 918 470C902 512 862 532 820 530C720 532 625 552 540 550C450 548 350 540 290 505" stroke="#5f9b82" stroke-opacity=".3" stroke-width="39"/><path d="M245 478C330 440 420 414 515 405C600 396 665 366 752 360C850 352 945 400 918 470C902 512 862 532 820 530C720 532 625 552 540 550C450 548 350 540 290 505" stroke="#f0dfad" stroke-width="23"/><path d="M245 478C330 440 420 414 515 405C600 396 665 366 752 360C850 352 945 400 918 470C902 512 862 532 820 530C720 532 625 552 540 550C450 548 350 540 290 505" stroke="#c9a86a" stroke-width="3" stroke-dasharray="2 16"/></g>
+ <!-- hills --> <g transform="translate(48 210)"><path d="M678 260Q718 165 770 185Q815 169 842 258Q792 306 678 260" fill="url(#mountain)"/><path d="M716 246Q745 178 765 189Q789 192 812 257Q758 274 716 246" fill="#67b398"/><path d="M762 194L746 223L770 215L782 236L796 232Z" fill="#e6e8d5" opacity=".8"/></g>
  <!-- beaches + vegetation --> <path d="M196 454C215 493 272 536 342 545" fill="none" stroke="#fbebbb" stroke-width="22" stroke-linecap="round"/><g id="trees" opacity=".98">
  <g transform="translate(334 306)"><ellipse rx="29" ry="9" fill="#247259" opacity=".17"/><path d="M0 4L0 -25" stroke="#876247" stroke-width="8"/><circle cx="-10" cy="-34" r="25" fill="#359f70"/><circle cx="14" cy="-40" r="26" fill="#4fc180"/><circle cx="10" cy="-21" r="22" fill="#278c62"/></g>
  <g transform="translate(360 490)"><ellipse rx="24" ry="8" fill="#247259" opacity=".17"/><path d="M0 3V-27" stroke="#876247" stroke-width="6"/><circle cx="-12" cy="-32" r="21" fill="#309e6c"/><circle cx="11" cy="-37" r="23" fill="#58bb7c"/></g>
- <g transform="translate(615 482)"><ellipse rx="25" ry="8" fill="#247259" opacity=".17"/><path d="M0 3V-25" stroke="#876247" stroke-width="7"/><circle cx="-8" cy="-33" r="23" fill="#309e6c"/><circle cx="15" cy="-31" r="22" fill="#54bf81"/></g>
- <g transform="translate(887 409)"><ellipse rx="28" ry="8" fill="#247259" opacity=".17"/><path d="M0 4V-27" stroke="#876247" stroke-width="7"/><circle cx="-11" cy="-34" r="24" fill="#269d70"/><circle cx="14" cy="-40" r="23" fill="#61c88e"/></g>
- <g transform="translate(879 305)"><ellipse rx="29" ry="8" fill="#247259" opacity=".17"/><path d="M0 5V-25" stroke="#876247" stroke-width="7"/><circle cx="-10" cy="-33" r="23" fill="#268b63"/><circle cx="14" cy="-36" r="23" fill="#59bb7c"/></g>
+ <g transform="translate(640 462)"><ellipse rx="25" ry="8" fill="#247259" opacity=".17"/><path d="M0 3V-25" stroke="#876247" stroke-width="7"/><circle cx="-8" cy="-33" r="23" fill="#309e6c"/><circle cx="15" cy="-31" r="22" fill="#54bf81"/></g>
+ <g transform="translate(700 452)"><ellipse rx="28" ry="8" fill="#247259" opacity=".17"/><path d="M0 4V-27" stroke="#876247" stroke-width="7"/><circle cx="-11" cy="-34" r="24" fill="#269d70"/><circle cx="14" cy="-40" r="23" fill="#61c88e"/></g>
+ <g transform="translate(912 318)"><ellipse rx="29" ry="8" fill="#247259" opacity=".17"/><path d="M0 5V-25" stroke="#876247" stroke-width="7"/><circle cx="-10" cy="-33" r="23" fill="#268b63"/><circle cx="14" cy="-36" r="23" fill="#59bb7c"/></g>
  <g transform="translate(431 523)"><ellipse rx="26" ry="7" fill="#247259" opacity=".17"/><path d="M0 4V-28" stroke="#876247" stroke-width="8"/><circle cx="-11" cy="-39" r="22" fill="#37a873"/><circle cx="14" cy="-40" r="24" fill="#52c083"/></g>
  </g>
  <!-- pier wood with depth --> <g transform="translate(216 462)"><path d="M-95 25L-36 25L-7 40L-7 68L-95 52Z" fill="#a97650"/><path d="M-95 25L-36 25L-7 40L-67 40Z" fill="#d49b69"/><path d="M-67 40V56M-35 32V54" stroke="#986743" stroke-width="8"/><path d="M-43 -13L12 -42L84 -12L29 17Z" fill="#f3ddac" stroke="#aa8762" stroke-width="4"/><path d="M-43 -13V15L29 47V17Z" fill="#c7ab78"/><path d="M29 17L84 -12V18L29 47Z" fill="#aa9366"/><path d="M-24 -32L12 -57L50 -42L13 -17Z" fill="#f2bb71"/><path d="M-24 -32V-5L13 11V-17Z" fill="#fff5da"/><path d="M13 -17L50 -42V-12L13 11Z" fill="#e3ceab"/><rect x="-4" y="-17" width="14" height="21" fill="#8bd9de" transform="skewY(22)"/><path d="M-67 43L-67 76" stroke="#9a6444" stroke-width="8"/><path d="M-42 50L-42 82" stroke="#9a6444" stroke-width="8"/><path d="M-8 57L-8 92" stroke="#9a6444" stroke-width="8"/></g>
  <!-- hotel isometric --> <g transform="translate(509 305)"><ellipse cx="4" cy="80" rx="100" ry="26" fill="#1e6554" opacity=".20"/><path d="M-80 -56L-5 -98L82 -59L7 -17Z" fill="url(#goldRoof)" stroke="#e7ab5b" stroke-width="3"/><path d="M-80 -56V49L7 92V-17Z" fill="#fffbeb" stroke="#dfdfc2" stroke-width="3"/><path d="M7 -17L82 -59V46L7 92Z" fill="#ecd4af"/><path d="M-61 -27l24 11v26l-24 -12zM-23 -7L0 4v26L-23 18zM-61 11l24 11v26l-24 -12zM-23 31L0 42v27L-23 57z" fill="#8bcbd5" stroke="#61a8b5" stroke-width="3"/><path d="M30 0l29 -17v26L30 27zM30 39l29 -17v27L30 66z" fill="#7dbcc5" stroke="#65a6ae" stroke-width="3"/><path d="M-8 60L17 72V91L-8 79Z" fill="#d7a86a"/><g transform="translate(-4 -105)"><path d="M0 0V-30" stroke="#87765b" stroke-width="4"/><path d="M0 -29L46 -19L0 -8Z" fill="#fff4ba"/></g></g>
- <!-- transport station bus and terminal --> <g transform="translate(786 409)"><ellipse cx="0" cy="60" rx="112" ry="27" fill="#285b5e" opacity=".17"/><path d="M-74 -28L-26 -53L47 -29L0 -2Z" fill="#f4b65e"/><path d="M-74 -28V27L0 51V-2Z" fill="#fff7e4"/><path d="M0 -2L47 -29V26L0 51Z" fill="#d4e1bf"/><path d="M-54 -11l33 11v21l-33 -12z" fill="#74c6d6"/><path d="M12 3l24 -13v22L12 25Z" fill="#80bdc4"/><g transform="translate(58 33)"><path d="M-30 -13L22 -29L54 -15L4 0Z" fill="#f5e3b1"/><path d="M-30 -13V15L4 30V0Z" fill="#57a4bc"/><path d="M4 0L54 -15V15L4 30Z" fill="#348e9f"/><path d="M-18 -6l17 8v13l-17 -8Z" fill="#e1f7e6"/><circle cx="-14" cy="24" r="11" fill="#234b60"/><circle cx="33" cy="26" r="11" fill="#234b60"/><circle cx="-14" cy="24" r="5" fill="#d2e0dc"/><circle cx="33" cy="26" r="5" fill="#d2e0dc"/></g></g>
- <!-- hill scenic attraction --> <g transform="translate(772 250)"><ellipse cy="46" rx="86" ry="21" fill="#235d5f" opacity=".17"/><path d="M-76 15L0 -28L78 13L4 54Z" fill="#c9996a"/><path d="M-76 6L0 -36L78 5L4 46Z" fill="#f9e6bd"/><path d="M-58 -11L0 -48L60 -11L4 25Z" fill="#efd5a1"/><path d="M-58 -11L0 -49L60 -11L3 24Z" fill="none" stroke="#b99060" stroke-width="5"/><path d="M0 -49V-92M-42 -25V-63M44 -25V-62" stroke="#917451" stroke-width="7"/><path d="M-47 -59L0 -93L46 -60" fill="none" stroke="#eaa967" stroke-width="11" stroke-linejoin="round"/><path d="M-47 -59L0 -93L46 -60" fill="none" stroke="#f7d296" stroke-width="6" stroke-linejoin="round"/><g><circle cx="0" cy="-105" r="15" fill="#ffe8b2"/><path d="M0 -106V-125" stroke="#876d4d" stroke-width="4"/></g></g>
+ <!-- transport station bus and terminal --> <g transform="translate(738 280)"><ellipse cx="0" cy="60" rx="112" ry="27" fill="#285b5e" opacity=".17"/><path d="M-74 -28L-26 -53L47 -29L0 -2Z" fill="#f4b65e"/><path d="M-74 -28V27L0 51V-2Z" fill="#fff7e4"/><path d="M0 -2L47 -29V26L0 51Z" fill="#d4e1bf"/><path d="M-54 -11l33 11v21l-33 -12z" fill="#74c6d6"/><path d="M12 3l24 -13v22L12 25Z" fill="#80bdc4"/><g transform="translate(58 33)"><path d="M-30 -13L22 -29L54 -15L4 0Z" fill="#f5e3b1"/><path d="M-30 -13V15L4 30V0Z" fill="#57a4bc"/><path d="M4 0L54 -15V15L4 30Z" fill="#348e9f"/><path d="M-18 -6l17 8v13l-17 -8Z" fill="#e1f7e6"/><circle cx="-14" cy="24" r="11" fill="#234b60"/><circle cx="33" cy="26" r="11" fill="#234b60"/><circle cx="-14" cy="24" r="5" fill="#d2e0dc"/><circle cx="33" cy="26" r="5" fill="#d2e0dc"/></g></g>
+ <!-- hill scenic attraction --> <g transform="translate(820 460)"><ellipse cy="46" rx="86" ry="21" fill="#235d5f" opacity=".17"/><path d="M-76 15L0 -28L78 13L4 54Z" fill="#c9996a"/><path d="M-76 6L0 -36L78 5L4 46Z" fill="#f9e6bd"/><path d="M-58 -11L0 -48L60 -11L4 25Z" fill="#efd5a1"/><path d="M-58 -11L0 -49L60 -11L3 24Z" fill="none" stroke="#b99060" stroke-width="5"/><path d="M0 -49V-92M-42 -25V-63M44 -25V-62" stroke="#917451" stroke-width="7"/><path d="M-47 -59L0 -93L46 -60" fill="none" stroke="#eaa967" stroke-width="11" stroke-linejoin="round"/><path d="M-47 -59L0 -93L46 -60" fill="none" stroke="#f7d296" stroke-width="6" stroke-linejoin="round"/><g><circle cx="0" cy="-105" r="15" fill="#ffe8b2"/><path d="M0 -106V-125" stroke="#876d4d" stroke-width="4"/></g></g>
  <g transform="translate(528 500)"><ellipse cy="34" rx="52" ry="13" fill="#1e6554" opacity=".18"/><path d="M-40 -18L0 -38L42 -18L2 2Z" fill="#e2684a"/><path d="M-40 -18V18L2 38V2Z" fill="#fffbeb"/><path d="M2 2L42 -18V18L2 38Z" fill="#ecd4af"/><path d="M-28 -4l18 9v16l-18 -9z" fill="#8bcbd5"/><circle cx="22" cy="6" r="8" fill="#0c777b"/><text x="22" y="10" font-size="11" fill="#fff" text-anchor="middle" font-weight="700">i</text></g>
+ <!-- 島上移動的人物與動物（由程式產生） --> <path id="walkPath" d="M245 478C330 440 420 414 515 405C600 396 665 366 752 360C850 352 945 400 918 470C902 512 862 532 820 530C720 532 625 552 540 550C450 548 350 540 290 505C262 500 240 492 245 478" fill="none" stroke="none"/><g id="walkers" aria-hidden="true"></g>
  <!-- completed enhancements drawn dynamically --> <g id="enhancements"></g>
  <!-- decorative sign + compass --> <g transform="translate(940 515)"><path d="M0 11V-25" stroke="#8b714e" stroke-width="7"/><path d="M-6 -35L32 -26L-6 -16Z" fill="#fdf0c4"/><path d="M-6 -14L-38 -7L-6 2Z" fill="#e5ad73"/></g>
  </svg>
+    <button type="button" id="animBtn" class="mapbtn" aria-pressed="true">暫停動畫</button>
     <button class="pin" data-id="port"></button>
     <button class="pin" data-id="hotel"></button>
     <button class="pin" data-id="transit"></button>
     <button class="pin" data-id="view"></button>
     <button class="pin" data-id="center"></button>
   </div>
-  <p class="mapcap">點地標開始遊戲，順序自己決定</p>
+  <p class="mapcap">闖關順序：① 碼頭 → ② 旅館 → ③ 車站 → ④ 景點 → ⑤ 遊客中心（買紀念品）</p>
 
   <section class="cols">
     <div class="card">
       <h2>五個關卡</h2>
-      <div class="muted">每關最多 3 顆星，可以重玩刷新紀錄。</div>
+      <div class="muted">要照順序闖關，過了一關才會開放下一關。每關最多 3 顆星，可以重玩刷新紀錄。</div>
       <div class="places" id="places"></div>
       <div class="callout">友善不是特別照顧少數人。斜坡、字幕、清楚的指標，推行李、戴耳機、第一次來的人一樣用得到。</div>
       <button id="audit" class="btn primary wide">👥 旅客來訪：驗收我的島</button>
     </div>
     <aside class="card">
-      <h2>我的島</h2>
-      <label for="islandInput">幫你的島取名字</label>
-      <input id="islandInput" class="field" maxlength="16" placeholder="例如：彩虹出發島" autocomplete="off">
-      <div style="font-weight:800">海水顏色</div>
-      <div id="themes" class="themes">
-        <button class="theme" data-theme="sea">🌊 海洋</button>
-        <button class="theme" data-theme="forest">🌳 森林</button>
-        <button class="theme" data-theme="sunset">🌅 夕陽</button>
-      </div>
+      <h2>島民證</h2>
       <div class="progress"><div id="bar" style="width:0%"></div></div>
       <p id="completion" class="muted"></p>
       <button id="certificate" class="btn primary wide" disabled>🏅 領取島民證</button>
@@ -325,18 +351,22 @@ const GAMES={
   hotel:{icon:'🏨',name:'旅館接待王',pin:'旅館',sub:'把對的工具遞給旅客'},
   transit:{icon:'💗',name:'同理心車站',pin:'車站',sub:'感受資訊太多、壓力滿載'},
   view:{icon:'🤝',name:'神隊友滑卡',pin:'景點',sub:'左滑右滑，分辨神隊友'},
-  center:{icon:'🎴',name:'友善翻翻牌',pin:'遊客中心',sub:'翻牌配對友善符號'}
+  center:{icon:'🎴',name:'友善翻翻牌',pin:'遊客中心',sub:'買紀念品：翻牌配對友善符號'}
 };
-const ORDER=Object.keys(GAMES);
+/* 闖關順序。LOCK=true 代表要照順序，過了前一關才開放下一關；改成 false 就能自由選關。 */
+const ORDER=['port','hotel','transit','view','center'];
+const LOCK=true;
+const NUM='①②③④⑤';
 const DEFNAME='我的友善觀光島';
-const defaults=()=>({name:'',theme:'sea',stars:{},mute:false,id:'',nick:''});
+const defaults=()=>({name:'',theme:'sea',stars:{},mute:false,id:'',nick:'',anim:null});
 let state=defaults();
 try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&typeof s==='object'){state={...defaults(),...s};if(!state.stars||typeof state.stars!=='object')state.stars={}}}catch(e){}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}};
 if(!state.id){state.id=Date.now().toString(36)+Math.random().toString(36).slice(2,8);save()}
-function report(){if(!ENDPOINT)return;try{const s=k=>Math.max(0,Math.min(3,Number(state.stars[k])||0));const ks=['port','hotel','transit','view','center'];const p={id:state.id,nick:state.nick||'（未填）',done:ks.filter(k=>s(k)>0).length,stars:ks.reduce((a,k)=>a+s(k),0)};ks.forEach(k=>p[k]=s(k));fetch(ENDPOINT,{method:'POST',mode:'no-cors',keepalive:true,headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)}).catch(()=>{})}catch(e){}}
+function report(){if(!ENDPOINT)return;try{const s=k=>Math.max(0,Math.min(3,Number(state.stars[k])||0));const ks=['port','hotel','transit','view','center'];const p={id:state.id,nick:state.nick||'（未填）',island:state.name||'',done:ks.filter(k=>s(k)>0).length,stars:ks.reduce((a,k)=>a+s(k),0)};ks.forEach(k=>p[k]=s(k));fetch(ENDPOINT,{method:'POST',mode:'no-cors',keepalive:true,headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)}).catch(()=>{})}catch(e){}}
 const starOf=k=>Math.max(0,Math.min(3,Number(state.stars[k])||0));
 const starTxt=n=>'★'.repeat(n)+'☆'.repeat(3-n);
+const unlocked=k=>{const i=ORDER.indexOf(k);return !LOCK||i<=0||starOf(k)>0||starOf(ORDER[i-1])>0};
 const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 
 /* 音效 */
@@ -351,15 +381,17 @@ function refresh(){
   $('mStars').textContent='⭐ '+total;$('mIndex').textContent=Math.round(total/15*100)+'%';$('mCount').textContent=n+' / 5';
   $('bar').style.width=n*20+'%';
   $('mapName').textContent='🏝️ '+(state.name||DEFNAME);
-  $('places').innerHTML=ORDER.map(k=>{const g=GAMES[k],s=starOf(k);return `<button type="button" class="place ${s?'completed':''}" data-place="${k}"><span class="ic">${g.icon}</span><span class="tx"><strong>${g.name}</strong><small>${g.sub}</small></span><span class="st" aria-label="${s} 顆星">${starTxt(s)}</span></button>`}).join('');
+  $('places').innerHTML=ORDER.map(k=>{const g=GAMES[k],s=starOf(k);const u=unlocked(k);return `<button type="button" class="place ${s?'completed':''} ${u?'':'locked'}" data-place="${k}"><span class="ic">${u?g.icon:'🔒'}</span><span class="tx"><strong>${NUM[ORDER.indexOf(k)]} ${g.pin}：${g.name}</strong><small>${u?g.sub:'先完成前一關'}</small></span><span class="st" aria-label="${s} 顆星">${starTxt(s)}</span></button>`}).join('');
   document.querySelectorAll('[data-place]').forEach(b=>b.onclick=()=>openGame(b.dataset.place));
-  document.querySelectorAll('.pin').forEach(b=>{const g=GAMES[b.dataset.id],d=starOf(b.dataset.id)>0;b.classList.toggle('done',d);b.textContent=(d?'✅ ':g.icon+' ')+g.pin});
-  $('completion').textContent=n===5?'五關全部完成！可以領島民證，也可以重玩把星星補滿。':`還有 ${5-n} 關，全部完成就能領島民證。`;
+  const nextK=ORDER.find(k=>!starOf(k));
+  document.querySelectorAll('.pin').forEach(b=>{const k=b.dataset.id,g=GAMES[k],d=starOf(k)>0,u=unlocked(k);b.classList.toggle('done',d);b.classList.toggle('locked',!u);b.classList.toggle('next',LOCK&&k===nextK);b.textContent=NUM[ORDER.indexOf(k)]+' '+(d?'✅ ':u?g.icon+' ':'🔒 ')+g.pin;b.setAttribute('aria-label',`第 ${ORDER.indexOf(k)+1} 關 ${g.pin}${d?'（已完成）':u?'':'（尚未開放）'}`)});
+  const who=$('who');who.hidden=!state.nick;who.textContent=state.nick?'島民：'+state.nick:'';
+  $('completion').textContent=n===5?'五關全部完成！可以領島民證（可下載 PNG 換小禮物），也可以重玩把星星補滿。':`還有 ${5-n} 關，全部完成就能領島民證。`;
   $('certificate').disabled=n!==5;
   $('mute').textContent=state.mute?'🔇':'🔊';
   document.querySelectorAll('.theme').forEach(x=>x.classList.toggle('selected',x.dataset.theme===state.theme));
   const rect=$('islandSvg').querySelector('rect');if(rect)rect.setAttribute('fill',state.theme==='sunset'?'#f3b989':state.theme==='forest'?'#85b9a6':'url(#waterG)');
-  const pos={port:[300,476],hotel:[595,365],transit:[885,444],view:[858,211],center:[590,515]};
+  const pos={port:[300,476],hotel:[595,365],transit:[850,250],view:[925,452],center:[590,515]};
   $('enhancements').innerHTML=ORDER.filter(k=>starOf(k)>0).map(k=>`<g transform="translate(${pos[k][0]} ${pos[k][1]})"><circle r="23" fill="#ffffff" stroke="#159571" stroke-width="4"/><path d="M-11 0l8 8 17-20" stroke="#168d70" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>`).join('');
 }
 
@@ -383,7 +415,8 @@ function finish(key,stars,lesson){
   acts(btn('↻ 再玩一次',()=>openGame(key),''),next?btn('下一關：'+GAMES[next].name,()=>openGame(next)):btn('🏅 領取島民證',certificate));
 }
 function retry(key,text){sfx('bad');show('再試一次',GAMES[key].icon+' '+GAMES[key].name,`<div class="msg bad">${text}</div>`);acts(btn('回地圖',close,''),btn('↻ 再挑戰',()=>openGame(key)))}
-function openGame(id){sfx('tap');({port:gamePort,hotel:gameHotel,transit:gameTransit,view:gameView,center:gameCenter})[id]()}
+function openGame(id){if(!unlocked(id)){const pv=ORDER.find(k=>!starOf(k));sfx('bad');show('還沒開放',NUM[ORDER.indexOf(id)]+' '+GAMES[id].pin,`<div class="msg bad">要照順序闖關喔！請先完成 ${NUM[ORDER.indexOf(pv)]} <b>${GAMES[pv].pin}</b>（${GAMES[pv].name}）。</div><p class="muted">順序：碼頭 → 旅館 → 車站 → 景點 → 遊客中心</p>`);const nx=ORDER.find(k=>!starOf(k));acts(btn('回地圖',close,''),btn('前往：'+GAMES[nx].pin,()=>openGame(nx)));return}
+  sfx('tap');({port:gamePort,hotel:gameHotel,transit:gameTransit,view:gameView,center:gameCenter})[id]()}
 
 /* ───── 1. 碼頭找碴 ───── */
 const HOTS={
@@ -567,7 +600,7 @@ const PAIRS=[
 function gameCenter(){
   const deck=shuffle(PAIRS.flatMap((p,i)=>[{p:i,t:'ico',v:p[0]},{p:i,t:'txt',v:p[1]}]));
   let open=[],moves=0,lock=false;const matched=new Set();
-  show('友善翻翻牌','第 5 關 · 記憶配對',`<div class="brief">把<b>符號</b>和它的<b>意思</b>配成一對。一次翻兩張，記住位置。</div>
+  show('友善翻翻牌','第 5 關 · 記憶配對',`<div class="brief">最後一站：遊客中心的紀念品店 🛍️。把<b>符號</b>和它的<b>意思</b>配成一對。一次翻兩張，記住位置。</div>
   <div class="hud"><span id="cMoves">翻了 0 次</span><span id="cPairs">配對 0 / 6</span></div>
   <div class="mem" id="mem"></div><div id="msg" class="msg" aria-live="polite">點一張牌開始。</div>`);
   const draw=()=>{$('mem').innerHTML=deck.map((c,i)=>{const m=matched.has(c.p),o=m||open.includes(i);return `<button type="button" class="mcard ${o?'open '+c.t:''} ${m?'matched':''}" data-i="${i}" aria-label="${o?esc(PAIRS[c.p][1])+(c.t==='ico'?'的圖示':''):'蓋著的牌'}">${o?(c.t==='ico'?c.v:esc(c.v)):'?'}</button>`}).join('');$('cMoves').textContent='翻了 '+moves+' 次';$('cPairs').textContent='配對 '+matched.size+' / 6'};
@@ -576,7 +609,7 @@ function gameCenter(){
     open.push(i);sfx('tap');draw();if(open.length<2)return;
     moves++;const[a,c]=open.map(x=>deck[x]);
     if(a.p===c.p){matched.add(a.p);open=[];sfx('good');draw();setMsg('配對成功！'+PAIRS[a.p][2],'good');
-      if(matched.size===6)setTimeout(()=>finish('center',moves<=10?3:moves<=15?2:1,`翻了 ${moves} 次完成 6 組配對。<br>下次在車站、餐廳、景點看到這些符號和設施，你就知道它們在幫誰，也知道怎麼不擋到別人的路。`),900)}
+      if(matched.size===6)setTimeout(()=>finish('center',moves<=10?3:moves<=15?2:1,`翻了 ${moves} 次完成 6 組配對。<br>你帶走了 6 張友善符號紀念卡 🛍️。下次在車站、餐廳、景點看到這些符號和設施，你就知道它們在幫誰，也知道怎麼不擋到別人的路。`),900)}
     else{lock=true;setMsg('不是一對，記住它們的位置。');setTimeout(()=>{open=[];lock=false;if($('mem'))draw()},900)}
   };
 }
@@ -593,14 +626,38 @@ function audit(){
   show('旅客來訪','驗收 · 已完成 '+n+' / 5 關',VISITORS.map((v,i)=>{const ok=starOf(v.k)>0;return `<div class="guest ${ok?'ok':'no'}" style="animation-delay:${i*.2}s"><span class="ic">${v.e}</span><div><strong>${v.n}</strong><small>${v.ask}</small>${ok?'😊 你的島已經準備好了':'😟 還沒準備好，去「'+GAMES[v.k].name+'」看看'}</div></div>`}).join('')+'<div class="callout">遊戲裡的旅客只是例子。真正遇到時，最好的做法還是直接問對方需要什麼。</div>');
   acts(btn('回地圖',close,''),...(n===5?[btn('🏅 領取島民證',certificate)]:[]));
 }
+function certCanvas(total){
+  const W=1080,H=1350,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+  const F='"PingFang TC","Noto Sans TC","Microsoft JhengHei","Heiti TC",system-ui,sans-serif';
+  const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'#d9f3ec');g.addColorStop(.55,'#ffffff');g.addColorStop(1,'#fff6df');x.fillStyle=g;x.fillRect(0,0,W,H);
+  x.strokeStyle='#0c777b';x.lineWidth=14;x.strokeRect(40,40,W-80,H-80);x.lineWidth=4;x.strokeRect(68,68,W-136,H-136);
+  x.textAlign='center';x.textBaseline='middle';
+  const t=(str,y,size,color,weight)=>{const f=()=>x.font=`${weight||900} ${size}px ${F}`;f();while(x.measureText(str).width>W-190&&size>24){size-=3;f()}x.fillStyle=color;x.fillText(str,W/2,y)};
+  t('🏅🏝️',235,150,'#173b45');
+  t('友善不設限 · 人人都是島民',410,46,'#56717a',800);
+  t('島 民 證',525,124,'#075c60');
+  x.strokeStyle='#f4b64f';x.lineWidth=6;x.beginPath();x.moveTo(300,615);x.lineTo(W-300,615);x.stroke();
+  t(state.name||DEFNAME,725,86,'#173b45');
+  if(state.nick)t('島民：'+state.nick,835,54,'#0c777b',800);
+  t('完成五項友善挑戰',940,46,'#173b45',700);
+  t('★'.repeat(total)+'☆'.repeat(15-total),1025,58,'#e89b1c');
+  t(`${total} / 15 顆星 · ${new Date().toLocaleDateString('zh-TW')}`,1105,40,'#56717a',700);
+  t('友善的環境，讓每個人都能參與',1215,46,'#075c60');
+  return c;
+}
 function certificate(){
   if(ORDER.some(k=>!starOf(k)))return;const total=ORDER.reduce((a,k)=>a+starOf(k),0);sfx('win');
-  show('友善島民證','五關全部完成',`<div class="cert"><div style="font-size:40px">🏅🏝️</div><h3>友善不設限 · 島民證</h3><div class="nm">${esc(state.name||DEFNAME)}</div><div>完成五項友善挑戰</div><div class="bigstars" style="font-size:26px;letter-spacing:2px">${'★'.repeat(total)}${'☆'.repeat(15-total)}</div><div class="muted">${total} / 15 顆星 · ${new Date().toLocaleDateString('zh-TW')}</div><p style="margin:10px 0 0;font-weight:800;color:var(--sea-deep)">友善的環境，讓每個人都能參與</p></div><p class="muted" style="text-align:center">用手機截圖保存，舉起來給老師看！</p>`);
-  acts(btn('回到我的島',close));
+  let c=null,url='';try{c=certCanvas(total);url=c.toDataURL('image/png')}catch(e){c=null}
+  const fname='島民證_'+String(state.nick||state.name||'友善島').replace(/[\\/:*?"<>|\s]+/g,'')+'.png';
+  show('友善島民證','五關全部完成',c?`<img class="certimg" id="certImg" alt="友善不設限島民證：${esc(state.name||DEFNAME)}，${total} / 15 顆星" src="${url}"><div id="msg" class="msg" aria-live="polite">按「下載 PNG」把島民證存起來，拿給老師換小禮物！如果沒辦法下載，長按圖片也可以儲存。</div>`
+    :`<div class="cert"><div style="font-size:40px">🏅🏝️</div><h3>友善不設限 · 島民證</h3><div class="nm">${esc(state.name||DEFNAME)}</div><div>完成五項友善挑戰</div><div class="muted">${total} / 15 顆星 · ${new Date().toLocaleDateString('zh-TW')}</div></div><p class="muted" style="text-align:center">這台裝置無法產生圖片，請用截圖保存。</p>`);
+  const dl=()=>{sfx('tap');const go=href=>{const a=document.createElement('a');a.href=href;a.download=fname;document.body.appendChild(a);a.click();a.remove();setMsg('已下載「'+fname+'」。找不到檔案的話，長按上面的圖片也可以儲存。','good')};
+    if(c.toBlob)c.toBlob(b=>{if(!b){go(url);return}const u=URL.createObjectURL(b);go(u);setTimeout(()=>URL.revokeObjectURL(u),5000)},'image/png');else go(url)};
+  acts(btn('回到我的島',close,''),...(c?[btn('⬇️ 下載 PNG',dl)]:[]));
 }
 function help(){
-  show('怎麼玩','遊戲說明',`<div class="brief">🔎 <b>碼頭</b>：在畫面上點出不友善的設計<br>🏨 <b>旅館</b>：看旅客的狀況，遞對的工具<br>💗 <b>車站</b>：兩段小體驗，感受資訊太多、壓力滿載<br>🤝 <b>景點</b>：左右滑卡分辨神隊友<br>🎴 <b>遊客中心</b>：翻牌配對友善符號</div>
-  <p>每關最多 3 顆星，五關都完成就能領島民證。車站的體驗只是很小的一段感受，不代表任何人的全部。</p>
+  show('怎麼玩','遊戲說明',`<div class="brief">🔎 <b>碼頭</b>：在畫面上點出不友善的設計<br>🏨 <b>旅館</b>：看旅客的狀況，遞對的工具<br>💗 <b>車站</b>：兩段小體驗，感受資訊太多、壓力滿載<br>🤝 <b>景點</b>：左右滑卡分辨神隊友<br>🎴 <b>遊客中心</b>：買紀念品，翻牌配對友善符號</div>
+  <p>要照順序闖關：碼頭 → 旅館 → 車站 → 景點 → 遊客中心。每關最多 3 顆星，五關都完成就能領島民證，下載 PNG 圖檔換小禮物。車站的體驗只是很小的一段感受，不代表任何人的全部。</p>
   <div class="callout"><b>課堂討論</b><br>1. 車站的廣播體驗，讓你想到哪些上課或生活的情境？<br>2. 旅館的四樣工具，除了遊戲裡的旅客，還有誰用得到？<br>3. 滑卡裡哪一張讓你最意外？</div>`);
   acts(btn('開始探索',close));
 }
@@ -611,11 +668,57 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('overlay').classL
 document.querySelectorAll('.pin').forEach(b=>b.onclick=()=>openGame(b.dataset.id));
 $('audit').onclick=audit;$('certificate').onclick=certificate;$('help').onclick=help;
 $('mute').onclick=()=>{state.mute=!state.mute;save();refresh();sfx('tap')};
-$('reset').onclick=()=>{show('重新開始？','重設確認','<div class="msg bad">這會清除這支手機上的星星和島嶼名稱。</div>');acts(btn('取消',close,''),btn('確定清除',()=>{state={...defaults(),id:state.id,nick:state.nick};save();report();$('islandInput').value='';refresh();close()}))};
+$('reset').onclick=()=>{show('重新開始？','重設確認','<div class="msg bad">這會清除這支手機上的星星和島嶼名稱。</div>');acts(btn('取消',close,''),btn('確定清除',()=>{state={...defaults(),id:state.id,nick:state.nick,anim:state.anim};save();report();$('islandInput').value='';refresh();close()}))};
 $('islandInput').value=state.name;
 $('islandInput').addEventListener('input',e=>{state.name=e.target.value.trim().slice(0,16);save();$('mapName').textContent='🏝️ '+(state.name||DEFNAME)});
 document.querySelectorAll('.theme').forEach(b=>b.onclick=()=>{state.theme=b.dataset.theme;save();refresh()});
 refresh();
+
+/* ───── 島上動畫：人物與動物沿環島路線移動 ─────
+   e＝角色（可多個一起走，排在前面的走在前頭）、v＝速度、o＝起點（0~1）、d＝方向（1 順時針、-1 逆時針）、m＝0 表示手機小畫面不顯示、s＝大小比例（只有頭像的表情符號縮小一點） */
+const WALK=[
+  {e:['🧑‍🦽'],v:30,o:.04,d:1},          /* 使用輪椅的人 */
+  {e:['🦮','🧑‍🦯'],v:22,o:.20,d:1},     /* 視障者與導盲犬 */
+  {e:['👵','👴'],v:13,o:.36,d:-1,s:.72},       /* 中高齡長輩 */
+  {e:['🚶'],v:27,o:.50,d:1},             /* 一般旅客 */
+  {e:['🧑‍🦼'],v:36,o:.63,d:-1},         /* 使用電動輪椅的人 */
+  {e:['🐕','🚶‍♀️'],v:25,o:.76,d:1},     /* 遛狗的人 */
+  {e:['🧏','🧑‍🤝‍🧑'],v:19,o:.88,d:-1,m:0,s:.85}, /* 聽障者與朋友 */
+  {e:['👨‍🦯'],v:18,o:.12,d:-1,m:0},     /* 拿白手杖的人 */
+  {e:['🏃'],v:52,o:.30,d:1,m:0},         /* 慢跑的人 */
+  {e:['🧓'],v:12,o:.57,d:1,m:0,s:.72},         /* 長輩 */
+  {e:['🐈'],v:33,o:.70,d:-1,m:0},        /* 貓 */
+  {e:['🐢'],v:5,o:.95,d:1,m:0}           /* 烏龜 */
+];
+(function island(){
+  const NS='http://www.w3.org/2000/svg',svg=$('islandSvg'),path=$('walkPath'),layer=$('walkers'),ab=$('animBtn');
+  if(!path||!path.getTotalLength||!layer)return;
+  const L=path.getTotalLength();
+  const mk=chars=>{const g=document.createElementNS(NS,'g');chars.forEach(ch=>{const t=document.createElementNS(NS,'text');t.textContent=ch;g.appendChild(t)});layer.appendChild(g);return g};
+  const ws=WALK.map(w=>({...w,el:mk(w.e),pos:w.o*L}));
+  const birdA=mk(['🐦']),birdB=mk(['🕊️']),dolphin=mk(['🐬']),crab=mk(['🦀']),fly=mk(['🦋']);
+  const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches;
+  let running=state.anim==null?!reduce:!!state.anim,size=30,small=false,t=0,last=0;
+  const layout=()=>{const w=svg.getBoundingClientRect().width||1100;small=w<600;size=Math.max(30,Math.min(60,20*1100/w));
+    layer.setAttribute('font-size',size);
+    ws.forEach(x=>{x.el.style.display=small&&x.m===0?'none':'';[...x.el.children].forEach((c,i)=>c.setAttribute('x',(i-(x.e.length-1)/2)*size*.92))})};
+  const draw=()=>{
+    ws.forEach(w=>{const a=path.getPointAtLength(w.pos),b=path.getPointAtLength((w.pos+w.d*6+L)%L);
+      w.el.setAttribute('transform',`translate(${a.x.toFixed(1)} ${(a.y+size*.2+Math.sin(t*7+w.o*40)*size*.04).toFixed(1)}) scale(${(b.x>a.x?-1:1)*(w.s||1)} ${w.s||1})`)});
+    const bx=1180-(t*46)%1300;birdA.setAttribute('transform',`translate(${bx.toFixed(1)} ${(96+Math.sin(t*2.2)*14).toFixed(1)})`);
+    const cx=-80+((t+9)*34)%1300;birdB.setAttribute('transform',`translate(${cx.toFixed(1)} ${(168+Math.sin(t*1.7)*12).toFixed(1)}) scale(-1 1)`);
+    const u=(t%7)/1.6;dolphin.style.opacity=u<1?1:0;if(u<1)dolphin.setAttribute('transform',`translate(${(215-u*120).toFixed(1)} ${(652-Math.sin(Math.PI*u)*52).toFixed(1)}) rotate(${(u*70-35).toFixed(0)})`);
+    const k=(Math.sin(t*.45)+1)/2;crab.setAttribute('transform',`translate(${(222+k*88).toFixed(1)} ${(498+k*50).toFixed(1)}) scale(.7)`);
+    fly.setAttribute('transform',`translate(${(655+Math.sin(t*.9)*46).toFixed(1)} ${(418+Math.sin(t*1.7)*20).toFixed(1)}) scale(.6)`);
+  };
+  const label=()=>{ab.textContent=running?'暫停動畫':'播放動畫';ab.setAttribute('aria-pressed',String(running))};
+  const frame=ts=>{const dt=Math.min(.05,(ts-last)/1000||0);last=ts;
+    if(running&&!document.hidden&&!$('overlay').classList.contains('show')){t+=dt;ws.forEach(w=>{w.pos=(w.pos+w.d*w.v*dt+L)%L});draw()}
+    requestAnimationFrame(frame)};
+  ab.onclick=()=>{running=!running;state.anim=running;save();label();sfx('tap')};
+  window.addEventListener('resize',()=>{layout();draw()});
+  layout();label();draw();requestAnimationFrame(frame);
+})();
 function askNick(){show('歡迎來到友善島','開始之前','<div class="brief">請輸入你的<b>座號或暱稱</b>，老師會看到全班的闖關進度。</div><input id="nickInput" class="field" maxlength="12" placeholder="例如：15 號" autocomplete="off"><div id="msg" class="msg">不需要填真實姓名。</div>');
   const go=()=>{const v=$('nickInput').value.trim().slice(0,12);if(!v){setMsg('請先輸入座號或暱稱。','bad');return}state.nick=v;save();report();close()};
   const b=btn('出發！',go);b.classList.add('wide');acts(b);$('nickInput').addEventListener('keydown',e=>{if(e.key==='Enter')go()})}
